@@ -1186,8 +1186,9 @@ body.sheet-open{overflow:hidden}
             <div class="rqf">
         <div class="rql"><span class="num">2</span><label for="rqType">ประเภทเครื่อง <small class="en">Machine Type</small></label><span class="star">*</span></div>
         <div class="fbox"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
-          <input id="rqType" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="rqTypeList" name="machineType" autocomplete="off" placeholder="เลือกหรือพิมพ์ประเภท เช่น AHU…" required aria-describedby="rqTypeErr"><button type="button" class="cbtog" data-cbtog="rqType" tabindex="-1" aria-label="เปิดรายการ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="cbx" id="rqTypeList" role="listbox" hidden></div></div>
+          <input id="rqType" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="rqTypeList" name="machineType" autocomplete="off" placeholder="เลือกประเภท (พิมพ์ค้นหาได้ เช่น AHU)…" required aria-describedby="rqTypeErr rqTypeHint"><button type="button" class="cbtog" data-cbtog="rqType" tabindex="-1" aria-label="เปิดรายการ"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button><div class="cbx" id="rqTypeList" role="listbox" hidden></div></div>
         <p class="ferr" id="rqTypeErr"></p>
+        <p class="fhint" id="rqTypeHint">ไม่รู้ประเภท เลือก <b>OTHER</b> · ช่างทุกคนจะเห็นงาน</p>
       </div>
       <div class="rqf">
         <div class="rql"><span class="num">3</span><label for="rqNo">เลขเครื่อง <small class="en">Machine No.</small></label><span class="star">*</span></div>
@@ -1353,16 +1354,25 @@ const CONFIG = {
     'MTL- CACS1,3', 'MTL- CACS2', 'MTL-ZONE-4', 'PARKING BUILDING', 'RO WATER PLANT FACTORY 12', 'RO WATER PLANT ZONE 2',
     'WASTE WATER TREATMENT UNIT 1', 'WASTE WATER TREATMENT UNIT 2', 'WASTE WATER TREATMENT UNIT 3', 'WASTE WATER TREATMENT UNIT 4',
     'WASTE WATER TREATMENT ZONE 1', 'WORKSHOP', 'Other'],
-  MACHINE_TYPES: ['200-380V FOR PRODUCTION', '220-380V FOR FACILITY', '220-380V FOR GENERAL', '100V FOR PRODUCTION', 'ACTIVATED CARBON TANK', 'AGITATOR',
-    'AIR COMPRESSOR', 'AIR CONDITION SPLIT', 'AIR HANDLING UNIT', 'AIR PACKAGE COOLING', 'BACK WASH WATER PUMP', 'CHEMICAL FEED PUMP', 'CHEMICAL STORAGE TANK',
-    'CHILLED WATER PUMP', 'COMPRESSED AIR FILTER', 'COMPRESSED AIR PRE FILTER', 'CONDENSING WATER PUMP', 'COOLING TOWER', 'COOLING WATER PUMP', 'CUSHION TANK',
-    'DI WATER PUMP', 'DI WATER TANK', 'EDI STACK UNIT', 'ELECTRICAL ROOM', 'ELECTRICAL SWITCH GEAR', 'ELECTRIC HEATER UNIT', 'ELEVATOR', 'ESCALATOR', 'EXHAUST FAN',
-    'EXPANSION TANK', 'FAN COIL UNIT', 'FAN FILTER UNIT', 'FILTER PRESS', 'FILTER RETURN', 'FIRE ALARM', 'FIRE HYDRANT PUMP', 'FILTERED WATER PUMP', 'HEAT EXCHANGER',
-    'JOCKEY PUMP', 'M6', 'MIXING BLOWER PUMP', 'OUTDOOR AIR CONDITIONER', 'PACKAGE BOOSTER PUMP', 'PRE FILTER AIRSHOWER', 'PROCESS EXHAUST FAN', 'RO MEMBRANE',
-    'RO WATER PUMP', 'SAND FILTER TANK', 'STEAM BOILER', 'STEAM HUMIDIFIER', 'SUBMERSIBLE PUMP', 'SUPPLY FAN', 'TRANSFORMER', 'VACUUM PUMP', 'VENTILATION FAN',
-    'WASTE WATER PUMP', 'WASTE WATER TANK', 'WATER CHILLER (AIR COOLED)', 'WATER PUMP', 'WATER SEPARATOR', 'WATER SOFTENER',
-    // งานใหม่ตามผังหน้าที่ช่าง (ต้องตรงกับ SystemID ใน M_System จึงมอบหมายช่างอัตโนมัติ)
-    'AIR SHOWER', 'AUTO SLIDE DOOR', 'BICYCLE', 'CENTRAL BATTERY', 'DISHWASHER', 'DRINKING WATER DISPENSER', 'FORKLIFT', 'GENERATOR', 'REFRIGERATOR', 'RESTROOM', 'SEALING MACHINE', 'Y-STRAINER PUMP', 'OTHER'],
+  // ประเภทเครื่องในฟอร์มแจ้งซ่อม = ผังหน้าที่ช่าง · [ชื่อ (ต้องตรงกับ SystemID ใน M_System), คำอธิบายสั้น] · เลือกจากรายการเท่านั้น
+  // OTHER = ไม่รู้ประเภท: ไม่ส่งให้ช่างอัตโนมัติ ช่างทุกคนเห็นงานจนมีคนกดรับ (Code.gs OPEN_TYPE)
+  MACHINE_TYPES: [
+    // PHANUPONG
+    ['REVERSE OSMOSIS DEIONIZED SYSTEM', 'RODI system'], ['COOLING TOWER SYSTEM', 'Cooling tower'], ['OUTDOOR LIGHTING', 'ไฟภายนอกอาคาร'],
+    ['AIR COMPRESSOR', 'Air comp / Air dryer'], ['COMPRESSED AIR FILTER', 'Comp air filter'], ['AIR TANK', ''], ['DRINKING WATER DISPENSER', 'ตู้น้ำดื่ม'],
+    // NARONGPON
+    ['HEAT EXCHANGER', 'HEX'], ['WASTE WATER SYSTEM', 'Waste'], ['CHEMICAL TRANSFER SYSTEM', 'Chem transfer'], ['WATER PUMP', ''], ['WATER TANK', ''],
+    ['VACUUM PUMP SYSTEM', 'Vacuum system'], ['DISHWASHER', 'เครื่องล้างจาน'], ['SUBMERSIBLE PUMP', ''], ['Y-STRAINER PUMP', ''],
+    // KANISORN (New staff)
+    ['EXHAUST FAN SYSTEM', 'Exhaust'], ['SUPPLY FAN', ''], ['DUST COLLECTOR', ''], ['ELEVATOR SYSTEM', 'ลิฟต์'], ['ESCALATOR SYSTEM', 'บันไดเลื่อน'],
+    ['VENTILATION FAN', ''], ['SOLAR ROOF', ''], ['FORKLIFT', 'รถยก'], ['CENTRAL BATTERY', ''],
+    // WUTTHIKAI
+    ['AIR CONDITIONING SYSTEM', 'Air condition'], ['CHILLER', ''], ['ELECTRICAL SYSTEM', 'ระบบไฟฟ้า'], ['FIRE ALARM SYSTEM', 'Fire alarm'],
+    // NARET
+    ['AIR HANDLING UNIT', 'AHU'], ['FAN FILTER UNIT', 'FFU'], ['OUTDOOR AIR CONDITIONING', 'OAC'], ['REFRIGERATOR', 'ตู้แช่'], ['AIR SHOWER', ''],
+    ['BICYCLE', 'จักรยาน'], ['GENERATOR', 'GEN · เครื่องปั่นไฟ'], ['SEALING MACHINE', 'เครื่องซีล'], ['AUTO SLIDE DOOR', 'ประตูเลื่อนอัตโนมัติ'], ['RESTROOM', 'ห้องน้ำ'],
+    ['OTHER', 'ไม่รู้ประเภท · ช่างทุกคนเห็นงานนี้'],
+  ],
   // จัดกลุ่มตามสถานะ · เลข Step ตรงกับแถบความคืบหน้าในรายละเอียดงาน (1 แจ้งซ่อม · 2 มอบหมายช่าง · 3 กำลังซ่อม · 4 รอตรวจรับ · 5 เสร็จสิ้น)
   // สถานะที่ไม่อยู่ในรายการจะได้กลุ่มของตัวเองต่อท้าย
   GROUPS: [
@@ -2558,6 +2568,17 @@ const CB_NEXT = { rqLoc: 'rqType', rqType: 'rqNo', rqNo: 'rqProblem' };
 const otherLast = (a, b) => (/^(other|others|อื่น ?ๆ?)$/i.test(String(a).trim()) - /^(other|others|อื่น ?ๆ?)$/i.test(String(b).trim())) || natural(a, b);
 var cb = { open: '', items: [], active: -1 };   // var: render() may run before this line
 const upper = s => String(s || '').trim().toUpperCase();
+// a typed machine type → its name in CONFIG.MACHINE_TYPES ("ahu" → AIR HANDLING UNIT), or '' when it is not in the list
+const typeFromList = s => { const q = upper(s); if (!q) return ''; const t = CONFIG.MACHINE_TYPES.find(([v, sub]) => upper(v) === q || (sub && upper(sub) === q)); return t ? t[0] : ''; };
+function checkType() {
+  const inp = $('rqType'), v = inp.value.trim();
+  if (!v) return true;
+  const t = typeFromList(v);
+  if (t) { if (t !== v) inp.value = t; return true; }
+  inp.setAttribute('aria-invalid', 'true');
+  $('rqTypeErr').textContent = 'เลือกประเภทจากรายการเท่านั้น · ถ้าไม่รู้ประเภทให้เลือก OTHER';
+  return false;
+}
 function cbOptions(id) {
   const m = state.machines || { machines: [], factories: [] };
   const loc = upper($('rqLoc').value), type = upper($('rqType').value);
@@ -2570,9 +2591,8 @@ function cbOptions(id) {
     return [...mine.map(v => ({ v, sub: 'โรงงานของบัญชีนี้' })), ...rest.map(v => ({ v, sub: '' }))];   // no machine counts in the list
   }
   if (id === 'rqType') {
-    // the same list whichever factory is picked; leftover AppSheet keys (e.g. 430c7f1c) are not types
-    const list = uniq([...m.machines.map(x => x.type), ...CONFIG.MACHINE_TYPES]).filter(v => !/^[0-9a-f]{8}$/i.test(v)).sort(otherLast);
-    return list.map(v => ({ v, sub: '' }));   // no machine counts in the list
+    // CONFIG.MACHINE_TYPES only (the duty chart), whichever factory is picked; OTHER last
+    return CONFIG.MACHINE_TYPES.map(([v, sub]) => ({ v, sub: sub || '' })).sort((a, b) => otherLast(a.v, b.v));
   }
   const pool = m.machines.filter(x => (!knownLoc || upper(x.factory) === loc) && (!knownType || upper(x.type) === type));
   return pool.slice().sort((a, b) => natural(a.id, b.id)).map(x => ({ v: x.id, sub: [x.type, x.factory].filter(Boolean).join(' · ') }));
@@ -2606,7 +2626,7 @@ function cbRender() {
   cb.items = items.slice(0, LIMIT);
   const loading = state.machines && state.machines.loading;
   box.innerHTML = (cb.items.length ? cb.items.map((o, i) => `<div class="cbo${upper(o.v) === q ? ' cur' : ''}" role="option" id="${id}-o${i}" data-i="${i}" aria-selected="${i === cb.active}"><b>${esc(o.v)}</b>${o.sub ? `<small>${esc(o.sub)}</small>` : ''}</div>`).join('')
-    : `<p class="cbempty">${loading ? 'กำลังโหลดรายชื่อ…' : id === 'rqNo' ? 'ไม่พบในรายชื่อ — พิมพ์รหัสเครื่องเองได้' : 'ไม่พบในรายชื่อ — ใช้ค่าที่พิมพ์ได้'}</p>`)
+    : `<p class="cbempty">${id === 'rqType' ? 'ไม่พบในรายการ — ถ้าไม่รู้ประเภทให้เลือก OTHER' : loading ? 'กำลังโหลดรายชื่อ…' : id === 'rqNo' ? 'ไม่พบในรายชื่อ — พิมพ์รหัสเครื่องเองได้' : 'ไม่พบในรายชื่อ — ใช้ค่าที่พิมพ์ได้'}</p>`)
     + (more > 0 ? `<p class="cbempty">และอีก ${more} รายการ — พิมพ์เพื่อค้นหา</p>` : '');
   box.hidden = false;
   const cur = box.querySelector('.cbo.cur');
@@ -2668,6 +2688,7 @@ $('rqNo').addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventD
   box.addEventListener('mousedown', e => e.preventDefault());   // keep focus in the field while picking
   box.addEventListener('click', e => { const o = e.target.closest('.cbo'); if (o) { cb.open = id; cbPick(+o.dataset.i); } });
 });
+$('rqType').addEventListener('blur', () => setTimeout(() => { if (document.activeElement !== $('rqType') && cb.open !== 'rqType') checkType(); }, 150));
 document.querySelectorAll('[data-cbtog]').forEach(b => {
   b.addEventListener('mousedown', e => e.preventDefault());
   b.addEventListener('click', () => { const id = b.dataset.cbtog; if (cb.open === id) cbClose(); else { $(id).focus(); cbOpen(id, true); } });
@@ -2756,6 +2777,7 @@ async function submitRequest(ev) {
     $(id + 'Err').textContent = bad ? msg : '';
     if (bad && !first) first = $(id);
   });
+  if (!checkType() && !first) first = $('rqType');
   if (first) { first.focus(); return; }
   const v = rqValues();
   const btn = $('rqSubmit');
@@ -2815,7 +2837,7 @@ window.addEventListener('beforeunload', e => {
   if (id === 'rqNo') {
     const hit = findMachine();
     if (hit) {   // a known machine fills in its type (the location is always picked by hand)
-      if (hit.type && !$('rqType').value.trim()) $('rqType').value = hit.type;
+      if (typeFromList(hit.type) && !$('rqType').value.trim()) $('rqType').value = typeFromList(hit.type);
     }
     machineHint();
   } else if (id !== 'rqProblem') fillLists();
@@ -3911,9 +3933,10 @@ demo.items = {
 demo.actions = {};
 const demoNow = () => { const d = new Date(); return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} ${two(d.getHours())}:${two(d.getMinutes())}:${two(d.getSeconds())}`; };
 const sameName = (a, b) => samePerson(a, b);
+const demoOpen = r => upper(r.MachineTypeID) === 'OTHER' && !String(r.AssignedEmployeeID || '').trim() && r.Status === ST().new;
 function demoSees(u, r) {
   if (u.role === 'engineer' || u.role === 'admin') return true;
-  if (u.role === 'technician') return sameName(r.AssignedEmployeeID, u.name);
+  if (u.role === 'technician') return sameName(r.AssignedEmployeeID, u.name) || demoOpen(r);
   return u.factory ? belongsTo(r.FactoryID, u.factory) : sameName(r.ReportedByEmail, u.username);
 }
 async function demoApi(p) {
@@ -3963,12 +3986,13 @@ async function demoApi(p) {
     const openOf = t => demo.rows.filter(x => sameName(x.AssignedEmployeeID, t.name) && x.Status !== 'Complete').length;
     const sys = demo.systems[String(r.SystemID || '').toUpperCase()];
     const fromSys = sys && techs.find(t => sameName(t.name, sys[0]));
-    const tech = fromSys || pool.sort((a, b) => openOf(a) - openOf(b))[0];
-    const engineer = sys ? sys[1] : '';
+    const open = upper(r.MachineTypeID) === 'OTHER';   // OTHER: nobody yet, every technician sees it
+    const tech = open ? null : fromSys || pool.sort((a, b) => openOf(a) - openOf(b))[0];
+    const engineer = sys && !open ? sys[1] : '';
     if (engineer) r.AssignedEngineerID = engineer;
     if (tech) r.AssignedEmployeeID = tech.name;   // stays WaitingEngineer until someone presses รับงาน
     (demo.actions[res.jobId] = demo.actions[res.jobId] || []).push({ time: demoNow(), username: 'system', name: 'ระบบ', role: 'system', type: 'auto',
-      detail: (tech ? 'ส่งให้ช่าง ' + tech.name + ' อัตโนมัติ · รอกดรับงาน' : 'ยังไม่มีช่างประจำระบบนี้ รอวิศวะมอบหมาย') + (engineer ? ' · วิศวะ ' + engineer : '') + ' (' + vals.filter(Boolean).join(' / ') + (tech ? ' · ตาม ' + (fromSys ? 'M_System' : 'Scope') : '') + ')' });
+      detail: open ? 'ไม่ระบุประเภทเครื่อง (OTHER) · ช่างทุกคนเห็นงานนี้ ช่างคนแรกที่กดรับงานจะได้งานไป' : (tech ? 'ส่งให้ช่าง ' + tech.name + ' อัตโนมัติ · รอกดรับงาน' : 'ยังไม่มีช่างประจำระบบนี้ รอวิศวะมอบหมาย') + (engineer ? ' · วิศวะ ' + engineer : '') + ' (' + vals.filter(Boolean).join(' / ') + (tech ? ' · ตาม ' + (fromSys ? 'M_System' : 'Scope') : '') + ')' });
     return Object.assign(res, { technician: tech ? tech.name : '', engineer });
   }
   const r = demo.rows.find(x => String(x.JobID) === String(p.id));
@@ -3981,11 +4005,13 @@ async function demoApi(p) {
     err = need(['engineer', 'technician']);
     if (!err) { r.HighAttention = p.on ? '1' : ''; log(r.JobID, 'attention', p.on ? 'ตั้งเป็น High attention' : 'ยกเลิก High attention'); }
   } else if (p.op === 'take') {
-    err = need(['technician', 'engineer']) || (st !== S.new && 'รับได้เฉพาะงานที่รอรับ') || (!r.AssignedEmployeeID && 'งานนี้ยังไม่มีช่าง กรุณามอบหมายช่างก่อน');
+    const claim = u.role === 'technician' && demoOpen(r);
+    err = need(['technician', 'engineer']) || (st !== S.new && 'รับได้เฉพาะงานที่รอรับ') || (!r.AssignedEmployeeID && !claim && 'งานนี้ยังไม่มีช่าง กรุณามอบหมายช่างก่อน');
     if (!err) {
+      if (claim) r.AssignedEmployeeID = u.name;
       r.Status = S.work;
       if (u.role === 'engineer' || u.role === 'admin') { if (!r.AssignedEngineerID && u.role === 'engineer') r.AssignedEngineerID = u.name; due(); }
-      log(r.JobID, 'take', (u.role === 'technician' ? 'ช่างรับงาน' : (u.role === 'admin' ? 'แอดมินรับงานแทนช่าง ' : 'วิศวะรับงานแทนช่าง ') + r.AssignedEmployeeID) + (note ? ' · ' + note : ''));
+      log(r.JobID, 'take', (u.role === 'technician' ? 'ช่างรับงาน' + (claim ? ' (งาน OTHER)' : '') : (u.role === 'admin' ? 'แอดมินรับงานแทนช่าง ' : 'วิศวะรับงานแทนช่าง ') + r.AssignedEmployeeID) + (note ? ' · ' + note : ''));
     }
   } else if (p.op === 'ack') {
     err = need(['engineer']);
