@@ -44,6 +44,13 @@ h1{font-size:24px;font-weight:600;line-height:1.3;margin:0 0 4px}
 .head h1{margin:0}
 .sub{color:var(--muted);margin:0 0 28px}
 .head .sub{margin:0}
+.sortbar{margin-left:auto;display:inline-flex;align-items:center;gap:8px;align-self:center;font-size:14px;color:var(--muted)}
+.sortbar .sgrp{display:inline-flex;border:1px solid var(--line);border-radius:999px;background:#fff;padding:3px}
+.sortbar button{min-height:34px;padding:4px 14px;border:0;border-radius:999px;background:none;color:var(--ink-2);font:inherit;font-size:14px;cursor:pointer;white-space:nowrap}
+.sortbar button:hover{color:var(--navy)}
+.sortbar button[aria-pressed="true"]{background:var(--navy);color:#fff;font-weight:600}
+.sortbar button:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+@media (max-width:700px){.head{flex-wrap:wrap}.sortbar{margin-left:0}}
 .late-tag{display:block;color:var(--err);font-size:13px}
 .notice{margin:16px 0 24px;font-size:14px;color:var(--ink-2)}
 .notice.err{color:var(--err)}
@@ -1147,7 +1154,8 @@ body.sheet-open{overflow:hidden}
     <label class="search"><span class="sr">ค้นหางาน</span><input id="search" name="q" type="search" placeholder="ค้นหารหัสงาน เครื่องจักร ชื่อช่าง…" autocomplete="off" spellcheck="false"></label>
     <div class="f" id="filters" role="group" aria-label="กรองตามสถานะ"></div>
   </div>
-  <div class="head"><h1 id="hello">งานของคุณ</h1><div class="facbar" id="facBar" role="group" aria-label="เลือกโรงงาน" hidden></div><p class="sub" id="count"></p></div>
+  <div class="head"><h1 id="hello">งานของคุณ</h1><div class="facbar" id="facBar" role="group" aria-label="เลือกโรงงาน" hidden></div><p class="sub" id="count"></p>
+    <div class="sortbar" id="sortBar" role="group" aria-label="เรียงตามวันที่แจ้ง"><span>วันที่แจ้ง</span><span class="sgrp"><button type="button" data-sort="new" aria-pressed="false">ใหม่ → เก่า</button><button type="button" data-sort="old" aria-pressed="false">เก่า → ใหม่</button></span></div></div>
   <p class="notice err" id="errNote" role="alert" hidden></p>
   <section aria-labelledby="listTitle"><h2 class="sr" id="listTitle">รายการงาน</h2><div id="list"></div></section>
   <p class="notice" id="demoNote" hidden>โหมดตัวอย่าง: ข้อมูลไม่ถูกบันทึก (บัญชีตัวอย่าง MT5200 ถึง MT5900 รหัส 1234)</p>
@@ -1368,7 +1376,7 @@ const DEMO = !CONFIG.API_URL || params.has('demo');   // ?demo=1 ดูหน้
 
 function store0(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } }
 const state = {
-  headers: [], rows: [], meta: {}, q: params.get('q') || '', status: params.get('status') || '', hideDone: false,
+  headers: [], rows: [], meta: {}, q: params.get('q') || '', status: params.get('status') || '', sort: /^(new|old)$/.test(params.get('sort') || '') ? params.get('sort') : '', hideDone: false,
   selected: params.get('job') || '', ok: null, lastOk: null, loading: false,
   page: 1, jumpTo: params.get('job') || '', customer: '', gate: '', actions: {},
   token: store0('ct_token'), user: (() => { try { return JSON.parse(store0('ct_user') || 'null'); } catch { return null; } })(),
@@ -1556,12 +1564,17 @@ function filtered(c) {
   const q = state.q.trim().toLowerCase();
   const rank = statusOrder().rank;
   const hotOpen = r => isHot(r) && !isDone(r[c.status]);
+  const dcol = findCol(CONFIG.DATE_COLUMN) || c.keys.reported;
+  const when = new Map(), at = r => { if (!when.has(r)) { const d = dcol ? parseAny(String(r[dcol] ?? '').trim()) : null; when.set(r, d ? +d : null); } return when.get(r); };
+  // jobs without a date go last in both directions
+  const byDate = (a, b) => { if (!state.sort) return 0; const x = at(a), y = at(b); if (x === y) return 0; if (x == null) return 1; if (y == null) return -1; return state.sort === 'old' ? x - y : y - x; };
   return scopeRows()
     .filter(r => !state.status || (state.status === HOT ? isHot(r) && !isDone(r[c.status]) : statusOf(r) === state.status))
     .filter(r => !state.hideDone || state.status || !isDone(r[c.status]))
     .filter(r => !q || Object.values(r).some(v => String(v).toLowerCase().includes(q)))
     .sort((a, b) => hotOpen(b) - hotOpen(a)
       || (hotOpen(a) ? 0 : rank[statusOf(a)] - rank[statusOf(b)])
+      || byDate(a, b)
       || String(b[c.id]).localeCompare(String(a[c.id]), undefined, { numeric: true }));
 }
 
@@ -1683,6 +1696,7 @@ function render() {
     + (hotN ? chip(HOT, 'hot', '<span class="cbolt" aria-hidden="true">' + BOLT + '</span>', 'High attention', 'งานด่วน', hotN) : '')
     + (c.status ? statuses.map(s => fbtn(s, counts[s])).join('') : '');
 
+  document.querySelectorAll('#sortBar [data-sort]').forEach(b => b.setAttribute('aria-pressed', String(state.sort === b.dataset.sort)));
   const rows = filtered(c);
   const scope = scopeRows();
   const open = scope.filter(r => !isDone(r[c.status])).length;
@@ -3066,6 +3080,7 @@ function syncUrl() {
   const put = (k, v) => v ? p.set(k, v) : p.delete(k);
   put('q', state.q.trim());
   put('status', state.status);
+  put('sort', state.sort);
   put('hide', state.hideDone ? '1' : '');
   put('job', state.selected);
   p.delete('c');   // the factory code lives in this device's storage, not in the address bar
@@ -4056,6 +4071,12 @@ $('search').addEventListener('input', e => {
   render();
   clearTimeout(urlTimer);
   urlTimer = setTimeout(syncUrl, 400);
+});
+$('sortBar').addEventListener('click', e => {
+  const b = e.target.closest('[data-sort]');
+  if (!b) return;
+  state.sort = state.sort === b.dataset.sort ? '' : b.dataset.sort;
+  state.page = 1; syncUrl(); render();
 });
 $('filters').addEventListener('click', e => {
   const b = e.target.closest('[data-status]');
