@@ -875,6 +875,8 @@ tr.grp .cnt small{font-size:12px;font-weight:400;margin-left:2px}
 .ahint{margin:-6px 0 0;font-size:13px;color:var(--muted)}
 .arow.t-corrective .ahint::before{content:"🔧 ";}.arow.t-preventive .ahint::before{content:"🛡 ";}
 .agrid.acr{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+/* phones: the Action form stacks into one column so the due date and its label stay on screen */
+@media (max-width:560px){.agrid,.agrid.acr{grid-template-columns:minmax(0,1fr)}.adue{flex-wrap:wrap;gap:4px 10px}.adue input{max-width:none;flex:1 1 160px;min-width:0}.ahead{flex-wrap:wrap}.afinish{flex-wrap:wrap}}
 .atbl tr.ar-corrective td:first-child{box-shadow:inset 4px 0 0 #1B3F96}
 .atbl tr.ar-preventive td:first-child{box-shadow:inset 4px 0 0 #2EAA62}
 .atbl tr.ar-preventive td{background:#F7FCF9}
@@ -1090,6 +1092,9 @@ body.sheet-open{overflow:hidden}
 .ts-tl small{display:block;font-size:12.5px;color:var(--muted)}
 .ts-last{background:#F6F8FC;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:14px}
 .ts-acts{margin-bottom:14px}.ts-acts ol{list-style:none;margin:6px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}.ts-acts li{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;background:#F6F8FC;border-radius:10px;padding:9px 12px;font-size:14px}.ts-acts li span{min-width:0;overflow-wrap:anywhere}.ts-acts em{flex:none;font-style:normal;font-size:12px;font-weight:600;padding:2px 8px;border-radius:999px;white-space:nowrap}.ts-acts .as-done{background:#E6F4EA;color:#157A43}.ts-acts .as-late{background:#FDE7E8;color:#C4141B}.ts-acts .as-work{background:var(--navy-bg);color:var(--navy-2)}.ts-acts p{margin:6px 0 0;font-size:14px;color:var(--muted)}
+.ts-do{display:flex;flex-direction:column;gap:8px;margin:0 0 16px}.ts-do .btn{width:100%;min-height:48px;justify-content:center;font-size:16px}
+.ts-acts li .ts-ab{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}.ts-acts li .ts-ab button{min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--navy);font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.ts-acts li .ts-ab button.ok{background:#E6F4EA;border-color:#B7DFC4;color:#157A43}.ts-acts li .ts-txt{display:flex;flex-direction:column;min-width:0}.ts-acts li .ts-txt small{color:var(--muted);font-size:12.5px;margin-top:2px}
 .ts-acts>small,.ts-ph>small{display:block;font-size:12px;color:var(--muted);margin-bottom:2px}
 .ts-ph .pgal{margin-top:6px}
 .atext .aremark{display:block;margin-top:4px;font-size:13px}
@@ -2507,11 +2512,19 @@ function openTrackSheet(id, quiet) {
   const lateBy = x.late && x.due ? Math.max(1, Math.round((today - x.due) / DAY)) : 0;
   const pill = x.priority ? `<span class="tp tp-${x.priority.toLowerCase()}">${esc(prioLabel(r[findCol(['Rank'])]))}</span>` : '';
   const photos = col(['ProblemPhoto', 'Picture']);
+  // the technician works the job from here: take it, add / tick / remark Actions, send it for review (same dialogs as the computer page)
+  const R = role(), S = ST(), mine = R === 'technician' || R === 'admin';
+  const isNew = norm(x.status) === norm(S.new), working = isWork(x.status), canTick = mine && !x.done;
+  const jid = esc(x.id), btn = (op, label, solid) => `<button type="button" class="btn${solid ? ' solid' : ''}" data-act="${op}" data-id="${jid}">${label}</button>`;
+  const todo = !mine ? '' : isNew ? btn('take', 'รับงาน', true)
+    : working ? btn('action', '+ เพิ่ม Action', true) + btn('submit', 'ทำเสร็จ · ส่งให้วิศวะตรวจ') : '';
+  const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
   $('trackSheetBody').innerHTML = `<p class="ts-id">${esc([x.id, x.machine, x.factory].filter(Boolean).join(' · '))}</p>
     <h2 id="trackSheetTitle">${esc(x.problem) || '—'}</h2>
     <div class="ts-pills">${pill}${x.late ? `<span class="tp tp-p1">เกินกำหนด${lateBy ? ' ' + lateBy + ' วัน' : ''}</span>` : ''}${x.done ? '<span class="tp tp-p3">เสร็จสิ้น</span>' : ''}</div>
     <ol class="ts-tl">${tl}</ol>
-    <div class="ts-acts"><small>Action${x.items.length ? ` · เสร็จ ${x.doneN}/${x.items.length}` : ''}</small>${x.items.length ? `<ol>${x.items.map(a => { const st = itemStatus(a), due = parseAny(a.due); return `<li><span>${esc(String(a.detail || '').trim() || '—')}</span><em class="as-${st === 'Complete' ? 'done' : st === 'Overdue' ? 'late' : 'work'}">${st === 'Complete' ? 'เสร็จแล้ว' : st === 'Overdue' ? 'เกินกำหนด' : 'กำลังทำ'}${st !== 'Complete' && due ? ' · ' + ymd(due) : ''}</em></li>`; }).join('')}</ol>` : '<p>ช่างยังไม่ได้ลง Action</p>'}</div>
+    ${todo ? `<div class="ts-do">${todo}</div>` : ''}
+    <div class="ts-acts"><small>Action${x.items.length ? ` · เสร็จ ${x.doneN}/${x.items.length}` : ''}</small>${x.items.length ? `<ol>${x.items.map(a => { const st = itemStatus(a), due = parseAny(a.due); return `<li><span class="ts-txt"><span>${esc(String(a.detail || '').trim() || '—')}</span>${a.remark && a.remark !== a.detail ? `<small>หมายเหตุ: ${esc(a.remark)}</small>` : ''}${itemBtns(a)}</span><em class="as-${st === 'Complete' ? 'done' : st === 'Overdue' ? 'late' : 'work'}">${st === 'Complete' ? 'เสร็จแล้ว' : st === 'Overdue' ? 'เกินกำหนด' : 'กำลังทำ'}${st !== 'Complete' && due ? ' · ' + ymd(due) : ''}</em></li>`; }).join('')}</ol>` : `<p>${working && mine ? 'ยังไม่มี Action · กด “+ เพิ่ม Action” เพื่อบันทึกงานที่ทำ' : 'ช่างยังไม่ได้ลง Action'}</p>`}</div>
     <div class="ts-ph"><small>รูปตอนแจ้ง</small>${photoGallery(x.id, photos, 'รูปภาพปัญหา', null, 'ไม่ได้แนบรูปตอนแจ้ง')}</div>`;
   const refs = splitRefs(photos).filter(v => !isLegacyRef(v));
   if (refs.length) loadPhotos(x.id, refs);
@@ -2531,6 +2544,11 @@ $('trackView').addEventListener('click', e => {
   if (c) { state.trackLast = c.dataset.track; openTrackSheet(c.dataset.track); }
 });
 $('trackSearch').addEventListener('input', e => { state.trackQ = e.target.value; renderTrack(); });
+$('trackSheet').addEventListener('click', e => {
+  const ad = e.target.closest('[data-adone]'); if (ad) { openAct('actionDone', ad.dataset.id, ad.dataset.adone); return; }
+  const arm = e.target.closest('[data-aremark]'); if (arm) { openAct('actionRemark', arm.dataset.id, arm.dataset.aremark); return; }
+  const ac = e.target.closest('[data-act]'); if (ac) { openAct(ac.dataset.act, ac.dataset.id); return; }
+});
 $('trackSheet').addEventListener('click', e => { if (e.target === $('trackSheet') || e.target.closest('#trackSheetClose')) closeTrackSheet(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('trackSheet').hidden && !($('imgDlg') && $('imgDlg').open)) closeTrackSheet(); });
 $('rqTrack').addEventListener('click', () => {
