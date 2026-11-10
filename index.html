@@ -58,6 +58,13 @@ h1{font-size:24px;font-weight:600;line-height:1.3;margin:0 0 4px}
 /* search + filters */
 .bar{display:flex;align-items:center;gap:12px 32px;flex-wrap:wrap;margin-bottom:22px}
 .search{width:360px;max-width:100%}
+.xf{display:flex;flex-wrap:wrap;align-items:flex-end;gap:10px 12px;margin:-8px 0 20px}
+.xf label{display:flex;flex-direction:column;gap:4px;font-size:12.5px;font-weight:600;color:var(--muted)}
+.xf select{min-height:40px;min-width:120px;max-width:240px;padding:6px 32px 6px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink);font:inherit;font-size:14.5px;cursor:pointer}
+.xf select.on{border-color:var(--navy);background:var(--navy-bg);color:var(--navy);font-weight:600}
+.xf select:focus-visible{outline:2px solid var(--navy);outline-offset:2px}
+.xf .xclear{align-self:flex-end;min-height:40px;padding:0 6px;border:0;background:none;color:var(--navy);font:inherit;font-size:14px;font-weight:600;text-decoration:underline;cursor:pointer}
+@media (max-width:700px){.xf{display:grid;grid-template-columns:1fr 1fr}.xf select{max-width:none;width:100%;min-width:0}}
 input,textarea{font:inherit;font-size:15px;color:var(--ink);background:#fff;width:100%}
 .search input{padding:9px 0;border:0;border-bottom:1px solid #BDBDBD;border-radius:0}
 .search input:focus{outline:none;border-bottom-color:var(--ink)}
@@ -1159,6 +1166,7 @@ body.sheet-open{overflow:hidden}
     <label class="search"><span class="sr">ค้นหางาน</span><input id="search" name="q" type="search" placeholder="ค้นหารหัสงาน เครื่องจักร ชื่อช่าง…" autocomplete="off" spellcheck="false"></label>
     <div class="f" id="filters" role="group" aria-label="กรองตามสถานะ"></div>
   </div>
+  <div class="xf" id="xFilters" role="group" aria-label="ตัวกรองเพิ่มเติม"></div>
   <div class="head"><h1 id="hello">งานของคุณ</h1><div class="facbar" id="facBar" role="group" aria-label="เลือกโรงงาน" hidden></div><p class="sub" id="count"></p>
     <div class="sortbar" id="sortBar" role="group" aria-label="เรียงตามวันที่แจ้ง"><span>วันที่แจ้ง</span><span class="sgrp"><button type="button" data-sort="new" aria-pressed="false">ใหม่ → เก่า</button><button type="button" data-sort="old" aria-pressed="false">เก่า → ใหม่</button></span></div></div>
   <p class="notice err" id="errNote" role="alert" hidden></p>
@@ -1393,7 +1401,7 @@ const DEMO = !CONFIG.API_URL || params.has('demo');   // ?demo=1 ดูหน้
 
 function store0(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } }
 const state = {
-  headers: [], rows: [], meta: {}, q: params.get('q') || '', status: params.get('status') || '', sort: /^(new|old)$/.test(params.get('sort') || '') ? params.get('sort') : '', hideDone: false,
+  headers: [], rows: [], meta: {}, q: params.get('q') || '', status: params.get('status') || '', sort: /^(new|old)$/.test(params.get('sort') || '') ? params.get('sort') : '', xf: { y: params.get('y') || '', m: params.get('m') || '', pic: params.get('pic') || '', loc: params.get('loc') || '', sys: params.get('sys') || '' }, hideDone: false,
   selected: params.get('job') || '', ok: null, lastOk: null, loading: false,
   page: 1, jumpTo: params.get('job') || '', customer: '', gate: '', actions: {},
   token: store0('ct_token'), user: (() => { try { return JSON.parse(store0('ct_user') || 'null'); } catch { return null; } })(),
@@ -1571,9 +1579,41 @@ function scopeRows() {
   const k = facCol();
   return state.rows.filter(r => belongsTo(r[k], state.fac));
 }
+// ---------- extra filters of the work list: year / month of the report date, PIC, location, system ----------
+const XF_COLS = () => ({ date: findCol(CONFIG.DATE_COLUMN) || columns().keys.reported, tech: findCol(['AssignedEmployeeID']), eng: findCol(['AssignedEngineerID', 'PIC']), loc: facCol(), sys: findCol(CONFIG.SYSTEM_COLUMN) });
+const xfOn = () => Object.values(state.xf).some(Boolean);
+function listRows() {
+  const rows = scopeRows(), x = state.xf;
+  if (!xfOn()) return rows;
+  const k = XF_COLS(), v = (r, col) => col ? String(r[col] ?? '').trim() : '';
+  return rows.filter(r => {
+    if (x.y || x.m) { const d = parseAny(v(r, k.date)); if (!d || (x.y && d.getFullYear() !== +x.y) || (x.m && d.getMonth() + 1 !== +x.m)) return false; }
+    if (x.pic && upper(v(r, k.tech)) !== upper(x.pic) && upper(v(r, k.eng)) !== upper(x.pic)) return false;
+    if (x.loc && !belongsTo(v(r, k.loc), x.loc)) return false;
+    if (x.sys && upper(v(r, k.sys)) !== upper(x.sys)) return false;
+    return true;
+  });
+}
+function renderXFilters() {
+  const rows = scopeRows(), k = XF_COLS(), x = state.xf;
+  const vals = cols => uniq(rows.flatMap(r => cols.filter(Boolean).map(c => String(r[c] ?? '').trim())).filter(Boolean)).sort(natural);
+  const years = uniq(rows.map(r => { const d = parseAny(String(r[k.date] ?? '').trim()); return d ? String(d.getFullYear()) : ''; }).filter(Boolean)).sort((a, b) => b - a);
+  const sel = (key, label, all, opts) => {
+    const list = x[key] && !opts.some(o => upper(o[0]) === upper(x[key])) ? opts.concat([[x[key], x[key]]]) : opts;   // a value from a link that is no longer in the data stays selectable
+    return `<label>${label}<select data-xf="${key}" class="${x[key] ? 'on' : ''}"><option value="">${all}</option>${list.map(([v, t]) => `<option value="${esc(v)}"${upper(v) === upper(x[key]) ? ' selected' : ''}>${esc(t)}</option>`).join('')}</select></label>`;
+  };
+  const html = sel('y', 'ปี', 'ทุกปี', years.map(y => [y, y]))
+    + sel('m', 'เดือน', 'ทุกเดือน', MON3.map((m, i) => [String(i + 1), m]))
+    + sel('pic', 'PIC', 'ทุกคน', vals([k.tech, k.eng]).map(v => [v, v]))
+    + (k.loc ? sel('loc', 'Location', 'ทุกโรงงาน', vals([k.loc]).map(v => [v, v])) : '')
+    + (k.sys ? sel('sys', 'System', 'ทุกระบบ', vals([k.sys]).map(v => [v, v])) : '')
+    + (xfOn() ? '<button type="button" class="xclear" data-xclear>ล้างตัวกรอง</button>' : '');
+  const box = $('xFilters');
+  if (box.dataset.html !== html) { box.innerHTML = html; box.dataset.html = html; }   // untouched while nothing changed (keeps keyboard focus)
+}
 function statusOrder() {
   const counts = {};
-  scopeRows().forEach(r => { const s = statusOf(r); counts[s] = (counts[s] || 0) + 1; });
+  listRows().forEach(r => { const s = statusOf(r); counts[s] = (counts[s] || 0) + 1; });
   const list = Object.keys(counts).sort((a, b) => ORDER[kindOf(a).kind] - ORDER[kindOf(b).kind] || kindOf(a).blocked - kindOf(b).blocked || counts[b] - counts[a] || a.localeCompare(b));
   return { counts, list, rank: Object.fromEntries(list.map((s, i) => [s, i])) };
 }
@@ -1585,7 +1625,7 @@ function filtered(c) {
   const when = new Map(), at = r => { if (!when.has(r)) { const d = dcol ? parseAny(String(r[dcol] ?? '').trim()) : null; when.set(r, d ? +d : null); } return when.get(r); };
   // jobs without a date go last in both directions
   const byDate = (a, b) => { if (!state.sort) return 0; const x = at(a), y = at(b); if (x === y) return 0; if (x == null) return 1; if (y == null) return -1; return state.sort === 'old' ? x - y : y - x; };
-  return scopeRows()
+  return listRows()
     .filter(r => !state.status || (state.status === HOT ? isHot(r) && !isDone(r[c.status]) : statusOf(r) === state.status))
     .filter(r => !state.hideDone || state.status || !isDone(r[c.status]))
     .filter(r => !q || Object.values(r).some(v => String(v).toLowerCase().includes(q)))
@@ -1707,9 +1747,10 @@ function render() {
     const th = late ? 'เกินกำหนด' : parts ? 'หยุดชั่วคราว' : { wait: 'รอรับงาน', work: 'กำลังซ่อม', review: 'รอตรวจรับ', done: 'เสร็จแล้ว', off: 'ยกเลิก' }[k.kind];
     return chip(s, cls, `<svg aria-hidden="true"><use href="#i-${late ? 'warn' : KICON[k.kind]}"/></svg>`, s, th, n);
   };
-  const hotN = scopeRows().filter(r => isHot(r) && !isDone(r[c.status])).length;
+  renderXFilters();
+  const hotN = listRows().filter(r => isHot(r) && !isDone(r[c.status])).length;
   if (state.status === HOT && !hotN && state.ok) { state.status = ''; syncUrl(); }   // last ⚡ cleared → back to all jobs
-  $('filters').innerHTML = chip('', 'all', '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>', 'ทั้งหมด', 'ทุกสถานะ', scopeRows().length)
+  $('filters').innerHTML = chip('', 'all', '<svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>', 'ทั้งหมด', 'ทุกสถานะ', listRows().length)
     + (hotN ? chip(HOT, 'hot', '<span class="cbolt" aria-hidden="true">' + BOLT + '</span>', 'High attention', 'งานด่วน', hotN) : '')
     + (c.status ? statuses.map(s => fbtn(s, counts[s])).join('') : '');
 
@@ -3123,6 +3164,7 @@ function syncUrl() {
   put('q', state.q.trim());
   put('status', state.status);
   put('sort', state.sort);
+  ['y', 'm', 'pic', 'loc', 'sys'].forEach(k => put(k, state.xf[k]));
   put('hide', state.hideDone ? '1' : '');
   put('job', state.selected);
   p.delete('c');   // the factory code lives in this device's storage, not in the address bar
@@ -4124,6 +4166,15 @@ $('sortBar').addEventListener('click', e => {
   state.sort = state.sort === b.dataset.sort ? '' : b.dataset.sort;
   state.page = 1; syncUrl(); render();
 });
+$('xFilters').addEventListener('change', e => {
+  const s = e.target.closest('[data-xf]'); if (!s) return;
+  state.xf[s.dataset.xf] = s.value; state.page = 1; state.selected = ''; syncUrl(); render();
+});
+$('xFilters').addEventListener('click', e => {
+  if (!e.target.closest('[data-xclear]')) return;
+  state.xf = { y: '', m: '', pic: '', loc: '', sys: '' }; state.page = 1; syncUrl(); render();
+  $('xFilters').querySelector('select')?.focus();
+});
 $('filters').addEventListener('click', e => {
   const b = e.target.closest('[data-status]');
   if (b) { state.status = b.dataset.status; state.page = 1; syncUrl(); render(); }
@@ -4152,6 +4203,7 @@ $('list').addEventListener('click', e => {
   if (ed) { openEdit(ed.dataset.edit); return; }
   if (e.target.closest('#clearFilters')) {
     state.q = ''; state.status = ''; state.hideDone = false; $('search').value = ''; store.set('ct_hideDone', '');
+    state.xf = { y: '', m: '', pic: '', loc: '', sys: '' };
     syncUrl(); render(); return;
   }
   const ph = e.target.closest('[data-refs]');
