@@ -3363,6 +3363,7 @@ function actionHead(id) {
 }
 function afterPhotos(id, items) {
   const refs = [], caps = [];
+  logOf(id).filter(a => a.type === 'submit').forEach(a => (a.photos || []).forEach((u, k, all) => { refs.push(u); caps.push('ตอนส่งงาน' + (all.length > 1 ? ' · รูป ' + (k + 1) : '')); }));
   items.forEach((a, i) => splitRefs(a.photos).forEach((u, k) => { refs.push(u); caps.push('Action #' + (i + 1) + (splitRefs(a.photos).length > 1 ? ' · รูป ' + (k + 1) : '')); }));
   return `<div class="aftergal"><span class="dl"><svg class="ico-inline"><use href="#i-cam"/></svg>รูปภาพหลังทำ Action</span>${photoGallery(id, refs, 'รูปภาพหลังทำ Action', caps, 'ยังไม่มีรูปหลังทำ — แนบได้ตอนกด "กดเมื่อเสร็จ" หรือตอนเพิ่ม Action')}</div>`;
 }
@@ -3463,6 +3464,7 @@ function reviewSummary(r, id) {
     ['Reported', dWhen(g(['ReportedAt', 'EventDateTime', 'Accident Date']), true)], ['Priority', rank ? prioLabel(rank) : ''],
     ['Submitted', dWhen(g(['EmployeeActualInspectAt']), true)]].filter(([, v]) => v);
   const refs = [], caps = [];
+  logOf(id).filter(a => a.type === 'submit').forEach(a => (a.photos || []).forEach((u, k, all) => { refs.push(u); caps.push('ตอนส่งงาน' + (all.length > 1 ? ' · รูป ' + (k + 1) : '')); }));
   items.forEach((a, i) => splitRefs(a.photos).forEach((u, k) => { refs.push(u); caps.push('Action #' + (i + 1) + (splitRefs(a.photos).length > 1 ? ' · รูป ' + (k + 1) : '')); }));
   return `<div class="full rvsum">
     <dl class="rvinfo">${info.map(([k, v]) => `<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>
@@ -3529,7 +3531,8 @@ function openAct(op, id, aid) {
   } else if (op === 'submit' && !actionItems(id).length) {
     f = '<p class="full msg">ต้องมี Action อย่างน้อย 1 รายการก่อนส่งงาน — กด "เพิ่ม Action" ก่อน</p>';
   } else if (op === 'submit') {
-    f = `<label class="full">Root cause *<textarea name="rootCause" rows="4" maxlength="3000" required placeholder="สาเหตุที่แท้จริงของปัญหา เช่น ลูกปืนชุดขับเคลื่อนชำรุด ทำให้ประตูติดขัด">${esc(String(r[findCol(['RootCause', 'Root Cause'])] ?? '').trim())}</textarea></label>`;
+    f = `<div class="full"><label class="abtn"><svg class="ico-inline"><use href="#i-cam"/></svg>แนบรูปหลังทำเสร็จ (ไม่บังคับ สูงสุด ${CONFIG.MAX_PHOTOS} รูป)<input type="file" id="actFiles" accept="image/jpeg,image/png,image/webp" multiple hidden></label><div class="thumbs" id="actThumbs"></div></div>
+      <label class="full">Root cause *<textarea name="rootCause" rows="4" maxlength="3000" required placeholder="สาเหตุที่แท้จริงของปัญหา เช่น ลูกปืนชุดขับเคลื่อนชำรุด ทำให้ประตูติดขัด">${esc(String(r[findCol(['RootCause', 'Root Cause'])] ?? '').trim())}</textarea></label>`;
   }
   else f = (op === 'approve' || op === 'sendBack' ? reviewSummary(r, id) : '') + `<label class="full">${op === 'sendBack' ? 'เหตุผลที่ส่งกลับ *' : 'หมายเหตุ'}<textarea name="note" maxlength="2000"${op === 'sendBack' ? ' required' : ''}></textarea></label>`;
   if (op !== 'action') $('actDlg').classList.remove('pmode');
@@ -3537,7 +3540,7 @@ function openAct(op, id, aid) {
   $('actForm').dataset.op = op; $('actForm').dataset.id = id; $('actForm').dataset.aid = aid || '';
   $('actOk').textContent = a.ok; $('actOk').disabled = op === 'submit' && !actionItems(id).length; $('actMsg').textContent = '';
   $('actDlg').showModal();
-  if (op === 'approve' || op === 'sendBack') { const refs = actionItems(id).flatMap(a => splitRefs(a.photos)).filter(v => !isLegacyRef(v)); if (refs.length) loadPhotos(id, refs); }
+  if (op === 'approve' || op === 'sendBack') { const refs = logOf(id).filter(a => a.type === 'submit').flatMap(a => a.photos || []).concat(actionItems(id).flatMap(a => splitRefs(a.photos))).filter(v => !isLegacyRef(v)); if (refs.length) loadPhotos(id, refs); }
   $('actFields').querySelector(op === 'approve' || op === 'sendBack' ? 'textarea' : 'select,textarea,input')?.focus();
 }
 $('actForm').addEventListener('submit', async e => {
@@ -3547,6 +3550,7 @@ $('actForm').addEventListener('submit', async e => {
   $('actFields').querySelectorAll('[name]').forEach(el => { if (el.type !== 'radio' || el.checked) p[el.name] = el.value.trim(); });
   if (op === 'actionDone') { p.actionId = $('actForm').dataset.aid; p.photos = state.actPhotos; }
   if (op === 'actionRemark') p.actionId = $('actForm').dataset.aid;
+  if (op === 'submit') p.photos = state.actPhotos;
   if (op === 'actionEdit') {
     p.actionId = $('actForm').dataset.aid;
     if (!p.text) { $('actMsg').textContent = 'กรุณาพิมพ์รายละเอียด Action'; return; }
@@ -3569,7 +3573,7 @@ $('actForm').addEventListener('submit', async e => {
   try {
     await api(p);
     $('actDlg').close();
-    toast({ take: 'รับงาน ' + id + ' แล้ว · On Process', ack: 'รับทราบงาน ' + id + ' แล้ว', accept: 'มอบหมายงาน ' + id + ' ให้ ' + p.technician + ' แล้ว', action: 'บันทึก Action แล้ว', actionEdit: 'แก้ไข Action แล้ว', actionRemark: p.remark ? 'บันทึกหมายเหตุแล้ว' : 'ลบหมายเหตุแล้ว', actionDone: 'บันทึกว่า Action เสร็จแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), submit: 'ส่งงาน ' + id + ' ให้วิศวะตรวจแล้ว', approve: 'ยอมรับงาน ' + id + ' แล้ว', sendBack: 'ส่งงาน ' + id + ' กลับให้ช่างแล้ว' }[op]);
+    toast({ take: 'รับงาน ' + id + ' แล้ว · On Process', ack: 'รับทราบงาน ' + id + ' แล้ว', accept: 'มอบหมายงาน ' + id + ' ให้ ' + p.technician + ' แล้ว', action: 'บันทึก Action แล้ว', actionEdit: 'แก้ไข Action แล้ว', actionRemark: p.remark ? 'บันทึกหมายเหตุแล้ว' : 'ลบหมายเหตุแล้ว', actionDone: 'บันทึกว่า Action เสร็จแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), submit: 'ส่งงาน ' + id + ' ให้วิศวะตรวจแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), approve: 'ยอมรับงาน ' + id + ' แล้ว', sendBack: 'ส่งงาน ' + id + ' กลับให้ช่างแล้ว' }[op]);
     state.selected = state.jumpTo = id;
     state.costsAt = 0;
     await load();
@@ -4178,7 +4182,11 @@ async function demoApi(p) {
     err = need(['technician', 'engineer']) || (!isWork(st) && 'ส่งงานได้เฉพาะงานที่กำลังดำเนินการ')
       || (!(demo.items[r.JobID] || []).length && 'ต้องมี Action อย่างน้อย 1 รายการก่อนส่งงาน');
     if (!err && !String(p.rootCause || '').trim()) err = 'กรุณาใส่ Root cause ก่อนส่งงาน';
-    if (!err) { r.Status = S.review; r.RootCause = String(p.rootCause).trim(); if (!demo.headers.includes('RootCause')) demo.headers.push('RootCause'); log(r.JobID, 'submit', 'ส่งงานให้วิศวะตรวจ · Root cause: ' + r.RootCause); }
+    if (!err) {
+      r.Status = S.review; r.RootCause = String(p.rootCause).trim(); if (!demo.headers.includes('RootCause')) demo.headers.push('RootCause');
+      const shots = (p.photos || []).map((_, k) => 'web/' + r.JobID + '_submit_' + (k + 1) + '.jpg');
+      log(r.JobID, 'submit', 'ส่งงานให้วิศวะตรวจ · Root cause: ' + r.RootCause + (shots.length ? ' · รูปหลังทำเสร็จ ' + shots.length + ' รูป' : ''), shots);
+    }
   } else if (p.op === 'approve') {
     err = need(['engineer']) || (st !== S.review && 'ยอมรับได้เฉพาะงานที่ช่างส่งมาแล้ว');
     if (!err) { r.Status = S.done; log(r.JobID, 'approve', 'ยอมรับงาน' + (note ? ' · ' + note : '')); }
