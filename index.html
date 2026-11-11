@@ -4126,6 +4126,7 @@ async function demoApi(p) {
     const r = demo.rows[demo.rows.length - 1];
     r.ReportedByEmail = key;
     if (p.impact === 'stop') r.Rank = CONFIG.RANKS[0]; else if (p.impact === 'run') r.Rank = CONFIG.RANKS[1]; else if (p.impact === 'none') r.Rank = CONFIG.RANKS[2];
+    if (prio(r.Rank).p === 'P1') r.HighAttention = '1';   // P1 → ⚡ automatically (Code.gs AUTO_ATTENTION_P1)
     log(res.jobId, 'request', p.problem.slice(0, 200), res.photos ? p.photos.map((_, i) => 'web/' + res.jobId + '_' + (i + 1) + '.jpg') : []);
     const vals = [r.SystemID, r.MachineTypeID].map(v => String(v || '').toUpperCase());
     const hit = t => (t.scope || []).some(e => e !== '*' && vals.some(v => v === e || new RegExp('(^|[^A-Z0-9])' + e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^A-Z0-9]|$)').test(v)));
@@ -4147,7 +4148,7 @@ async function demoApi(p) {
   const r = demo.rows.find(x => String(x.JobID) === String(p.id));
   if (!r || !demoSees(u, r)) return { error: 'ไม่พบงาน ' + p.id };
   const need = roles => u.role === 'admin' || roles.includes(u.role) ? '' : 'บัญชีนี้ไม่มีสิทธิ์ทำรายการนี้';
-  const S = ST(), st = r.Status, note = String(p.note || '').trim();
+  const S = ST(), st = r.Status, note = String(p.note || '').trim(), rank0 = r.Rank;
   let err = '';
   const due = () => { if (p.due) { const [y, m, d] = p.due.split('-'); r.DueDateTime = `${+d}/${+m}/${y} 00:00:00`; } if (p.rank) r.Rank = p.rank; };
   if (p.op === 'attention') {
@@ -4234,6 +4235,9 @@ async function demoApi(p) {
       log(r.JobID, 'edit', 'แก้ไข ' + Object.keys(p.fields || {}).join(', '));
     }
   } else err = 'ไม่รู้จักคำสั่ง';
+  if (!err && r.Rank !== rank0 && prio(r.Rank).p === 'P1' && prio(rank0).p !== 'P1' && r.Status !== S.done && r.HighAttention !== '1') {
+    r.HighAttention = '1'; log(r.JobID, 'attention', '⚡ High attention อัตโนมัติ (P1)');
+  }
   return err ? { error: err } : { ok: true, jobId: r.JobID };
 }
 
