@@ -303,6 +303,11 @@ body{background:#fff}
 .top .sync{font-size:13.5px}
 .top .r{gap:10px}
 .top .r .link{text-decoration:none;border:1px solid var(--field);border-radius:999px;padding:6px 14px;color:var(--navy);font-weight:500;font-size:13.5px;transition:background-color .15s,border-color .15s}
+.top .r .rfbtn{display:inline-grid;place-items:center;width:40px;height:40px;padding:0;border-radius:50%}
+.rfbtn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.rfbtn.busy svg{animation:rfspin .8s linear infinite}
+@keyframes rfspin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.rfbtn.busy svg{animation-duration:2.4s}}
 .top .r .link:hover{background:var(--navy-bg);border-color:var(--navy-2);color:var(--navy)}
 #custChip{color:var(--ink-2);font-size:13.5px;margin-right:4px}
 #custChip .link{padding:3px 10px;margin-left:4px}
@@ -1022,7 +1027,7 @@ td.pic button.has:hover .pic-cnt{background:var(--red)}
 /* phones: request form only (CONFIG.PHONE_REQUEST_ONLY) */
 .drop .d-touch{display:none}
 @media (pointer:coarse){.drop .d-desk{display:none}.drop .d-touch{display:inline}}
-body.phone-req .nav,body.phone-req #menuBtn,body.phone-req .hero,body.phone-req #todo,body.phone-req #updated,body.phone-req #refreshBtn,body.phone-req #rqView,body.phone-req .rqsub,body.phone-req [data-history]{display:none!important}
+body.phone-req .nav,body.phone-req #menuBtn,body.phone-req .hero,body.phone-req #todo,body.phone-req #updated,body.phone-req #rqView,body.phone-req .rqsub,body.phone-req [data-history]{display:none!important}
 body.phone-req .top{flex-wrap:nowrap;gap:10px;padding-top:8px;padding-bottom:8px}
 body.phone-req .top .brand img{height:22px;width:auto}
 body.phone-req .top .brand .sep,body.phone-req .top .brand .name{display:none}
@@ -1167,7 +1172,7 @@ body.sheet-open{overflow:hidden}
   <span class="sync" id="updated" aria-live="polite">กำลังโหลด…</span>
   <div class="r">
     <span id="userChip" class="userchip" hidden><img id="userAvatar" class="user-avatar" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'/%3E" alt="" width="32" height="32" hidden><span id="userInitial" class="user-initial" aria-hidden="true" hidden></span><span class="role" id="userRole"></span><b id="userName"></b><button class="link" id="logoutBtn">ออกจากระบบ</button></span>
-    <button class="link" id="refreshBtn">โหลดใหม่</button>
+    <button type="button" class="link rfbtn" id="refreshBtn" aria-label="โหลดใหม่" title="โหลดใหม่"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/></svg></button>
   </div>
 </div>
 
@@ -4311,7 +4316,13 @@ $('list').addEventListener('click', e => {
   if (row && !String(getSelection())) toggle(row.dataset.row);
 });
 
-$('refreshBtn').addEventListener('click', load);
+// reloads the whole page, like F5 (the login stays; an unsent request form still asks before leaving)
+$('refreshBtn').addEventListener('click', () => {
+  const b = $('refreshBtn');
+  b.classList.add('busy'); b.setAttribute('aria-busy', 'true');
+  location.reload();
+  setTimeout(() => { b.classList.remove('busy'); b.removeAttribute('aria-busy'); }, 4000);   // reload cancelled (e.g. "leave page?" → stay)
+});
 ['ct_pin', 'ct_editor', 'ct_customer'].forEach(k => store.set(k, ''));   // leftovers from factory-code login
 $('gateForm').addEventListener('submit', async ev => {
   ev.preventDefault();
