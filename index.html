@@ -882,6 +882,17 @@ tr.grp .cnt small{font-size:12px;font-weight:400;margin-left:2px}
 .ahint{margin:-6px 0 0;font-size:13px;color:var(--muted)}
 .arow.t-corrective .ahint::before{content:"🔧 ";}.arow.t-preventive .ahint::before{content:"🛡 ";}
 .agrid.acr{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+/* phone Action form (actionRowPhone) */
+.arow.pform{border:0!important;background:none!important;padding:0!important;display:flex;flex-direction:column;gap:14px}
+.pform .afield select,.pform .afield input{min-height:46px;font-size:16px}
+.pform .afield textarea{font-size:16px;min-height:96px}
+.pform .pdate[hidden],.pform .pdue[hidden]{display:none!important}
+.pform details{border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.pform summary{min-height:46px;display:flex;align-items:center;gap:6px;font-size:14.5px;font-weight:600;color:var(--navy);cursor:pointer;list-style:none}
+.pform summary::-webkit-details-marker{display:none}
+.pform summary::before{content:"▸";font-size:12px;transition:transform .15s}.pform details[open] summary::before{transform:rotate(90deg)}
+.pform details[open]{padding-bottom:12px}.pform details .afield{margin-top:10px}
+@media (max-width:700px){#actDlg.pmode{padding:18px 16px;width:calc(100% - 20px)}#actDlg.pmode .efields{max-height:68vh;gap:14px}#actDlg.pmode .addrow{display:none}#actDlg.pmode .dsub{margin-bottom:12px}#actDlg.pmode .acts .btn{flex:1;min-height:48px;justify-content:center}}
 /* phones: the Action form stacks into one column so the due date and its label stay on screen */
 @media (max-width:560px){.agrid,.agrid.acr{grid-template-columns:minmax(0,1fr)}.adue{flex-wrap:wrap;gap:4px 10px}.adue input{max-width:none;flex:1 1 160px;min-width:0}.ahead{flex-wrap:wrap}.afinish{flex-wrap:wrap}}
 .atbl tr.ar-corrective td:first-child{box-shadow:inset 4px 0 0 #1B3F96}
@@ -3488,7 +3499,10 @@ function openAct(op, id, aid) {
     const names = uniq(Object.values(state.items || {}).flat().map(a => String(a.picOther || '').trim()).concat(M().technicians || [], state.user.name)).sort(natural);
     $('picList').innerHTML = names.map(v => `<option value="${esc(v)}">`).join('');
     state.actPic = role() === 'technician' ? state.user.name : techOf(r) || state.user.name;
-    f = `<div class="full"><div id="arows">${actionRow(1)}</div>
+    const pm = phoneMQ.matches;
+    $('actDlg').classList.toggle('pmode', pm);
+    if (pm) { $('actTitle').textContent = 'เพิ่ม Action'; $('actSub').textContent = id + ' · ' + String(r[c.title] || ''); }
+    f = `<div class="full"><div id="arows">${pm ? actionRowPhone() : actionRow(1)}</div>
       <button type="button" class="addrow" id="addRow">+ เพิ่ม Action อีกรายการ</button></div>
       <div class="full"><label class="abtn"><svg class="ico-inline"><use href="#i-cam"/></svg>แนบรูปหลังทำ (ไม่บังคับ สูงสุด ${CONFIG.MAX_PHOTOS} รูป)<input type="file" id="actFiles" accept="image/jpeg,image/png,image/webp" multiple hidden></label><div class="thumbs" id="actThumbs"></div></div>`;
   } else if (op === 'actionDone') {
@@ -3518,6 +3532,7 @@ function openAct(op, id, aid) {
     f = `<label class="full">Root cause *<textarea name="rootCause" rows="4" maxlength="3000" required placeholder="สาเหตุที่แท้จริงของปัญหา เช่น ลูกปืนชุดขับเคลื่อนชำรุด ทำให้ประตูติดขัด">${esc(String(r[findCol(['RootCause', 'Root Cause'])] ?? '').trim())}</textarea></label>`;
   }
   else f = (op === 'approve' || op === 'sendBack' ? reviewSummary(r, id) : '') + `<label class="full">${op === 'sendBack' ? 'เหตุผลที่ส่งกลับ *' : 'หมายเหตุ'}<textarea name="note" maxlength="2000"${op === 'sendBack' ? ' required' : ''}></textarea></label>`;
+  if (op !== 'action') $('actDlg').classList.remove('pmode');
   $('actFields').innerHTML = f;
   $('actForm').dataset.op = op; $('actForm').dataset.id = id; $('actForm').dataset.aid = aid || '';
   $('actOk').textContent = a.ok; $('actOk').disabled = op === 'submit' && !actionItems(id).length; $('actMsg').textContent = '';
@@ -3719,6 +3734,37 @@ document.addEventListener('keydown', e => {
   }
   growTa(ta);
 });
+const pDayOpt = n => { const d = new Date(); d.setDate(d.getDate() + n); return dShort(d); };
+function actionRowPhone() {
+  const T = { CORRECTIVE: 'Corrective · ซ่อม', PREVENTIVE: 'Preventive · ป้องกัน' };
+  return `<div class="arow pform t-corrective">
+    <label class="afield">ทำอะไรไป *<textarea data-k="text" rows="4" maxlength="2000" placeholder="พิมพ์สิ่งที่ทำ เช่น เปลี่ยนมอเตอร์ใหม่"></textarea></label>
+    <label class="afield">ประเภท<select data-k="type">${CONFIG.ACTION_TYPES.map(t => `<option value="${t.toUpperCase()}"${t === 'Corrective' ? ' selected' : ''}>${T[t.toUpperCase()] || t}</option>`).join('')}</select></label>
+    <label class="afield">สถานะ<select data-pstat><option value="open" selected>ยังไม่เสร็จ</option><option value="today">ทำเสร็จแล้ววันนี้</option><option value="pick">ทำเสร็จแล้ว · เลือกวัน</option></select></label>
+    <label class="afield pdate" data-pfin hidden>วันที่ทำเสร็จ<input type="date" data-k="finish" value="${plusDays(0)}" max="${plusDays(0)}" disabled></label>
+    <div class="pdue">
+      <label class="afield">กำหนดเสร็จ<select data-pdue>${[[0, 'วันนี้'], [1, 'พรุ่งนี้'], [3, '+3 วัน'], [7, '+7 วัน']].map(([d, l]) => `<option value="${d}"${d === 1 ? ' selected' : ''}>${l} · ${pDayOpt(d)}</option>`).join('')}<option value="pick">เลือกวัน…</option></select></label>
+      <label class="afield pdate" data-pduepick hidden>เลือกวันกำหนดเสร็จ<input type="date" data-k="due" value="${plusDays(1)}"></label>
+    </div>
+    <details><summary>เพิ่มเติม: PIC · ค่าใช้จ่าย · หมายเหตุ</summary>
+      <label class="afield">PIC<input data-k="picOther" list="picList" maxlength="200" placeholder="ผู้รับผิดชอบ เช่น Kurita, PDD"></label>
+      <label class="afield">ค่าใช้จ่าย (บาท)<input data-k="cost" inputmode="decimal" maxlength="15" placeholder="ไม่บังคับ เช่น 12000"></label>
+      <label class="afield">หมายเหตุ<input data-k="remark" maxlength="2000" placeholder="ไม่บังคับ เช่น รออะไหล่จาก supplier"></label>
+    </details>
+  </div>`;
+}
+// status / due dropdowns of the phone row: a finished Action takes its finish date as the due date too
+function pformSync(rw) {
+  const st = rw.querySelector('[data-pstat]').value, done = st !== 'open';
+  const fin = rw.querySelector('[data-k="finish"]'), due = rw.querySelector('[data-k="due"]'), dsel = rw.querySelector('[data-pdue]');
+  fin.disabled = !done;
+  if (st === 'today') fin.value = plusDays(0);
+  rw.querySelector('[data-pfin]').hidden = st !== 'pick';
+  rw.querySelector('.pdue').hidden = done;
+  if (done) due.value = fin.value;
+  else if (dsel.value !== 'pick') due.value = plusDays(+dsel.value);
+  rw.querySelector('[data-pduepick]').hidden = done || dsel.value !== 'pick';
+}
 function actionRow(n) {
   const due = plusDays(0);
   return `<div class="arow t-corrective">
@@ -3765,6 +3811,11 @@ $('actFields').addEventListener('click', e => {
 $('actFields').addEventListener('change', e => {
   const rw = e.target.closest('.arow');
   if (!rw) return;
+  if (rw.classList.contains('pform')) {
+    if (e.target.matches('[data-k="type"]')) { rw.classList.toggle('t-corrective', e.target.value === 'CORRECTIVE'); rw.classList.toggle('t-preventive', e.target.value === 'PREVENTIVE'); }
+    if (e.target.matches('[data-pstat], [data-pdue], [data-k="finish"]')) pformSync(rw);
+    return;
+  }
   if (e.target.matches('[data-donechk]')) {
     const fin = rw.querySelector('[data-k="finish"]');
     fin.disabled = !e.target.checked;
