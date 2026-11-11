@@ -1191,7 +1191,7 @@ body.sheet-open{overflow:hidden}
 </section>
 
 <main id="main" tabindex="-1">
-  <section class="todo" id="todo" hidden aria-label="งานที่ต้องทำ"></section>
+  <section class="todo" id="todo" hidden aria-label="แจ้งเตือน"></section>
   <div class="bar">
     <label class="search"><span class="sr">ค้นหางาน</span><input id="search" name="q" type="search" placeholder="ค้นหารหัสงาน เครื่องจักร ชื่อช่าง…" autocomplete="off" spellcheck="false"></label>
   </div>
@@ -3924,7 +3924,7 @@ function renderTodo() {
   const canAsk = 'Notification' in window && Notification.permission === 'default';
   el.hidden = !items.length && !canAsk || role() === 'customer';
   if (el.hidden) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="todo-h"><b>งานที่ต้องทำ</b><span class="cnt">${items.length}</span>${canAsk ? '<button class="link" id="askNotify"><svg class="ico-inline"><use href="#i-bell"/></svg>เปิดเสียงและป๊อปอัปแจ้งเตือน</button>' : ''}</div>`
+  el.innerHTML = `<div class="todo-h"><b>แจ้งเตือน</b><span class="cnt">${items.length}</span>${canAsk ? '<button class="link" id="askNotify"><svg class="ico-inline"><use href="#i-bell"/></svg>เปิดเสียงและป๊อปอัปแจ้งเตือน</button>' : ''}</div>`
     + (items.length ? `<div class="todo-l">${items.map(i => `<button class="todo-i k-${i.kind}" data-goto-job="${esc(i.id)}"><span class="tk">${i.kind === 'hot' ? BOLT : ''}${esc(i.label)}</span><span class="tid">${esc(i.id)}</span><span class="tt">${esc(i.title)}</span></button>`).join('')}</div>` : '<p class="todo-0">ไม่มีงานค้าง เยี่ยมมาก</p>');
 }
 $('todo').addEventListener('click', async e => {
