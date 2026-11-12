@@ -1734,7 +1734,8 @@ function render() {
     $('userName').textContent = state.user.name;
     loadAvatar();
     loadTeam();
-    const avatar = state.avatarUrl || getTeamAvatar(state.user);   // Drive picture first, then team_photos/
+    let avatar = state.avatarUrl || getTeamAvatar(state.user);   // Drive picture first, then team_photos/
+    if (avatar && typeof badPic === 'object' && badPic.has(avatar)) avatar = '';   // it did not load before → initials
     const avatarEl = $('userAvatar'), initialEl = $('userInitial');
     // staff without a picture get a circle with the first letter of their name (customers stay without one)
     const initial = !avatar && state.user.role !== 'customer' ? initialOf(state.user.name || state.user.username) : '';
@@ -2607,7 +2608,8 @@ function openTrackSheet(id, quiet) {
   const jid = esc(x.id), btn = (op, label, solid) => `<button type="button" class="btn${solid ? ' solid' : ''}" data-act="${op}" data-id="${jid}">${label}</button>`;
   const todo = !mine ? '' : isNew ? btn('take', 'รับงาน', true)
     : working ? btn('action', '+ เพิ่ม Action', true) + btn('submit', 'ทำเสร็จ · ส่งให้วิศวะตรวจ') : '';
-  const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
+  const canEdit = isEngR() || (R === 'technician' && working);
+  const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${canEdit ? `<button type="button" data-aedit="${esc(a.id)}" data-id="${jid}">แก้ไข</button>` : ''}${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
   $('trackSheetBody').innerHTML = `<p class="ts-id">${esc([x.id, x.machine, x.factory].filter(Boolean).join(' · '))}</p>
     <h2 id="trackSheetTitle">${esc(x.problem) || '—'}</h2>
     <div class="ts-pills">${pill}${x.late ? `<span class="tp tp-p1">เกินกำหนด${lateBy ? ' ' + lateBy + ' วัน' : ''}</span>` : ''}${x.done ? '<span class="tp tp-p3">เสร็จสิ้น</span>' : ''}</div>
@@ -2638,6 +2640,7 @@ $('trackView').addEventListener('click', e => {
 $('trackSearch').addEventListener('input', e => { state.trackQ = e.target.value; renderTrack(); });
 $('trackSheet').addEventListener('click', e => {
   const ad = e.target.closest('[data-adone]'); if (ad) { openAct('actionDone', ad.dataset.id, ad.dataset.adone); return; }
+  const aed = e.target.closest('[data-aedit]'); if (aed) { openAct('actionEdit', aed.dataset.id, aed.dataset.aedit); return; }
   const arm = e.target.closest('[data-aremark]'); if (arm) { openAct('actionRemark', arm.dataset.id, arm.dataset.aremark); return; }
   const ac = e.target.closest('[data-act]'); if (ac) { openAct(ac.dataset.act, ac.dataset.id); return; }
 });
@@ -2989,11 +2992,31 @@ function compactCols(c) {
   };
 }
 const shortDate = d => dShort(d);
+// pictures that failed to load on this page (kept so the next render shows initials straight away)
+var badPic = new Set();
+document.addEventListener('error', e => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !/^(data:image\/(jpeg|png|webp|gif)|https?:|team_photos\/)/.test(img.getAttribute('src') || '')) return;
+  if (img.id === 'userAvatar') {
+    badPic.add(img.getAttribute('src'));
+    img.hidden = true;
+    const ini = $('userInitial');
+    if (ini && state.user && state.user.role !== 'customer') { ini.textContent = initialOf(state.user.name || state.user.username); ini.hidden = false; ini.title = state.user.name; }
+    return;
+  }
+  if (!img.classList.contains('pav')) return;
+  badPic.add(img.getAttribute('src'));
+  const s = document.createElement('span');
+  s.className = img.className.replace(/\bpimg\b/, '').trim();
+  s.title = img.title;
+  s.textContent = img.dataset.ini || '?';
+  img.replaceWith(s);
+}, true);
 const person = (name, role) => {
   const n = String(name || '').trim();
   if (!n) return `<span class="pav none ${role}" title="${role === 'tech' ? 'ยังไม่มีช่าง' : 'ยังไม่มีวิศวะ'}">?</span>`;
   const tip = (role === 'tech' ? 'ช่าง' : 'วิศวะ') + ': ' + n, pic = staffPic(n);
-  if (pic) return `<img class="pav pimg ${role}" src="${esc(pic)}" alt="${esc(tip)}" title="${esc(tip)}" width="40" height="40" loading="lazy">`;
+  if (pic && !badPic.has(pic)) return `<img class="pav pimg ${role}" src="${esc(pic)}" alt="${esc(tip)}" title="${esc(tip)}" width="40" height="40" loading="lazy" data-ini="${esc(initialOf(n) || '?')}">`;
   return `<span class="pav ${role}" title="${esc(tip)}">${esc(initialOf(n) || '?')}</span>`;
 };
 // ---------- staff photos (people column) ----------
@@ -3425,7 +3448,7 @@ function actionTableHtml(r, id) {
     const st = itemStatus(a);
     return `<tr class="ar-${esc(String(a.type || '').toLowerCase())}"><td>${i + 1}</td><td><span class="atype t-${esc(String(a.type || '').toLowerCase())}">${esc(TYPE_LABEL(a.type))}</span></td>
       <td class="atext">${stepsHtml(a.detail)}${a.remark && a.remark !== a.detail ? `<small>หมายเหตุ: ${esc(a.remark)}</small>` : ''}${role() === 'technician' && canTick && a.id ? `<button type="button" class="link aremark" data-aremark="${esc(a.id)}" data-id="${esc(id)}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ เพิ่มหมายเหตุ'}</button>` : ''}${(a.photos || []).length ? `<small class="aphotos">${photoBtns(id, a.photos, 'รูปภาพหลังทำ Action #' + (i + 1))}</small>` : ''}</td>
-      <td>${esc(a.picOther || a.pic)}${isEngR() && a.id ? ` <button class="link aedit" data-aedit="${esc(a.id)}" data-id="${esc(id)}" aria-label="แก้ไข Action ${i + 1}">แก้ไข</button>` : ''}</td>
+      <td>${esc(a.picOther || a.pic)}${(isEngR() || (role() === 'technician' && isWork(statusOf(r)))) && a.id ? ` <button class="link aedit" data-aedit="${esc(a.id)}" data-id="${esc(id)}" aria-label="แก้ไข Action ${i + 1}">แก้ไข</button>` : ''}</td>
       <td${st === 'Overdue' ? ' class="alate"' : ''}>${day(a.due)}</td>
       <td>${a.finish ? '<span class="adone">✓ ทำแล้ว ' + day(a.finish) + '</span>' : `<span class="anot">ยังไม่ทำ</span>${canTick && a.id ? ` <button class="link" data-adone="${esc(a.id)}" data-id="${esc(id)}">กดเมื่อเสร็จ</button>` : ''}`}</td>
       <td><span class="ast s-${st.toLowerCase().replace(/\s+/g, '')}">${esc(st)}</span></td>
@@ -3493,7 +3516,7 @@ const ACTS = {
   approve: { title: 'ยอมรับงาน', ok: 'ยอมรับ · ปิดงาน', msg: 'ตรวจงานแล้ว ยอมรับและปิดงานนี้ (Complete)' },
   sendBack: { title: 'ส่งกลับให้ช่างแก้', ok: 'ส่งกลับ', msg: 'งานยังไม่เรียบร้อย ส่งกลับให้ช่างทำต่อ' },
   actionRemark: { title: 'หมายเหตุ Action', ok: 'บันทึกหมายเหตุ', msg: 'เพิ่มหรือแก้หมายเหตุของ Action นี้ (ขึ้นในประวัติงาน)' },
-  actionEdit: { title: 'แก้ไข Action', ok: 'บันทึกการแก้ไข', msg: 'แก้ไข Action ที่ช่างบันทึกไว้ (ขึ้นในประวัติว่าวิศวะแก้ไข)' },
+  actionEdit: { title: 'แก้ไข Action', ok: 'บันทึกการแก้ไข', msg: 'แก้ไขรายละเอียด / Due date ของ Action นี้ (ขึ้นในประวัติงานว่าใครแก้)' },
   actionDone: { title: 'บันทึกว่า Action เสร็จแล้ว', ok: 'บันทึกว่าเสร็จแล้ว', msg: 'ใส่วันที่เสร็จ และแนบรูปหลังทำเสร็จ (ไม่บังคับ)' },
 };
 // what the engineer is reviewing: job info, root cause, every action with its status, after-work photos
@@ -4209,12 +4232,12 @@ async function demoApi(p) {
     if (!err) { a.remark = rm; log(r.JobID, 'actionRemark', rm ? 'หมายเหตุ Action ' + a.id + ' · ' + rm : 'ลบหมายเหตุ Action ' + a.id); }
   } else if (p.op === 'actionEdit') {
     const list = demo.items[r.JobID] || [], a = list.find(x => x.id === p.actionId);
-    err = need(['engineer']) || (!a && 'ไม่พบ Action ' + p.actionId) || (!p.text && 'กรุณาพิมพ์รายละเอียด Action') || (!p.due && 'กรุณาใส่ Due date');
+    err = need(['engineer', 'technician']) || (u.role === 'technician' && !isWork(st) && 'ช่างแก้ไข Action ได้เฉพาะงานที่กำลังซ่อม (ยังไม่ส่งให้วิศวะตรวจ)') || (!a && 'ไม่พบ Action ' + p.actionId) || (!p.text && 'กรุณาพิมพ์รายละเอียด Action') || (!p.due && 'กรุณาใส่ Due date');
     if (!err) {
       const m = String(p.due).match(/^(\d{4})-(\d{2})-(\d{2})$/);
       Object.assign(a, { type: String(p.type || 'CORRECTIVE').toUpperCase(), detail: p.text, due: m ? `${+m[3]}/${+m[2]}/${m[1]}` : a.due, picOther: p.picOther || '', remark: p.remark || '', cost: p.cost ? String(p.cost).replace(/,/g, '') : '' });
       if (list[list.length - 1] === a) r.PrimaryAction = r.Progress = p.text;
-      log(r.JobID, 'actionEdit', 'วิศวะแก้ไข Action ' + a.id + ' · ' + a.type + ' · ' + p.text);
+      log(r.JobID, 'actionEdit', (u.role === 'technician' ? 'ช่างแก้ไข Action ' : u.role === 'admin' ? 'แอดมินแก้ไข Action ' : 'วิศวะแก้ไข Action ') + a.id + ' · ' + a.type + ' · ' + p.text);
     }
   } else if (p.op === 'actionDone') {
     const a = (demo.items[r.JobID] || []).find(x => x.id === p.actionId);
