@@ -823,6 +823,12 @@ body[data-role="engineer"] .userchip .user-avatar{border-color:var(--red)}
 .todo-h b{font-family:var(--head-font);color:var(--navy);font-size:15.5px}
 .todo-h .cnt{background:var(--red);color:#fff;border-radius:999px;font-size:12.5px;font-weight:700;padding:1px 9px}
 .todo-h .link{margin-left:auto;font-size:13px}
+.todo-x{display:inline-flex;align-items:center;gap:4px;min-height:34px;padding:4px 12px;border:1px solid var(--line);border-radius:999px;background:#fff;color:var(--navy);font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;margin-left:auto}
+.todo-h .link+.todo-x{margin-left:8px}
+.todo-x:hover{border-color:var(--navy-2)}
+.todo-x svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transform:rotate(180deg)}
+.todo.folded .todo-x svg{transform:none}
+.todo.folded{padding-top:10px;padding-bottom:10px}
 .todo-l{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;max-height:168px;overflow:auto}
 .todo-i{display:flex;align-items:center;gap:8px;border:1px solid var(--field);border-radius:10px;background:var(--field-bg);padding:7px 12px;font-size:13.5px;max-width:420px;text-align:left}
 .todo-i:hover{border-color:var(--navy-2);background:var(--navy-bg)}
@@ -3004,7 +3010,9 @@ function staffPic(name) {
   const k = staffKey(name);
   if (!k) return '';
   if (team.byKey[k]) return team.byKey[k];
-  const hit = Object.keys(team.byKey).find(x => x.length >= 4 && (k.startsWith(x) || x.startsWith(k) && k.length >= 4));
+  // a name with a surname after it ("NARONGPONTHEPIN" → NARONGPON); the longest such name wins. A shorter name never takes a
+  // longer one's picture (NATTAPON is not NATTAPONG)
+  const hit = Object.keys(team.byKey).filter(x => x.length >= 4 && k.startsWith(x)).sort((a, b) => b.length - a.length)[0];
   return hit ? team.byKey[hit] : getTeamAvatar({ name, role: 'engineer' }) || '';
 }
 async function loadTeam() {
@@ -3283,6 +3291,7 @@ const ROLE_NAME = { customer: 'ลูกค้า', technician: 'ช่าง', 
 // Mapping team photos from รูปทีม.xlsx
 const TEAM_AVATARS = {
   'NATTAPONG': 'team_photos/image3.jpeg',
+  'NATTAPON': 'team_photos/nattapon.jpeg',   // not the same person as NATTAPONG
   'YOTTHANANONT': 'team_photos/image7.jpeg',
   'NARAT': 'team_photos/image11.jpeg',
   'NARET': 'team_photos/image11.jpeg',
@@ -3307,13 +3316,12 @@ function getTeamAvatar(user) {
                    .replace(/[^a-zA-Z0-9\u0E00-\u0E7F]/g, '')
                    .toUpperCase();
   if (!clean) return null;   // no name \u2192 no picture (an empty name used to match the first entry)
-  for (const [key, src] of Object.entries(TEAM_AVATARS)) {
-    const k = key.toUpperCase().replace(/[^A-Z0-9]/g, '');
-    // exact name, or the name plus a surname ("NATTAPONG S."); a short fragment like "NA" no longer picks someone
-    if (clean === k || clean.startsWith(k)) {
-      return src;
-    }
-  }
+  // the exact name first, then the longest name it starts with (a surname after it: "NATTAPONG S.") — so NATTAPON and NATTAPONG never swap
+  const keys = Object.keys(TEAM_AVATARS).map(key => [key.toUpperCase().replace(/[^A-Z0-9]/g, ''), TEAM_AVATARS[key]]);
+  const exact = keys.find(([k]) => k === clean);
+  if (exact) return exact[1];
+  const pre = keys.filter(([k]) => k.length >= 4 && clean.startsWith(k)).sort((a, b) => b[0].length - a[0].length)[0];
+  if (pre) return pre[1];
   return null;
 }
 const role = () => (state.user && state.user.role) || 'customer';
@@ -3924,10 +3932,13 @@ function renderTodo() {
   const canAsk = 'Notification' in window && Notification.permission === 'default';
   el.hidden = !items.length && !canAsk || role() === 'customer';
   if (el.hidden) { el.innerHTML = ''; return; }
-  el.innerHTML = `<div class="todo-h"><b>แจ้งเตือน</b><span class="cnt">${items.length}</span>${canAsk ? '<button class="link" id="askNotify"><svg class="ico-inline"><use href="#i-bell"/></svg>เปิดเสียงและป๊อปอัปแจ้งเตือน</button>' : ''}</div>`
-    + (items.length ? `<div class="todo-l">${items.map(i => `<button class="todo-i k-${i.kind}" data-goto-job="${esc(i.id)}"><span class="tk">${i.kind === 'hot' ? BOLT : ''}${esc(i.label)}</span><span class="tid">${esc(i.id)}</span><span class="tt">${esc(i.title)}</span></button>`).join('')}</div>` : '<p class="todo-0">ไม่มีงานค้าง เยี่ยมมาก</p>');
+  const folded = store.get('ct_todoFold') === '1';   // hidden with the ซ่อน button (this device remembers it)
+  el.classList.toggle('folded', folded);
+  el.innerHTML = `<div class="todo-h"><b>แจ้งเตือน</b><span class="cnt">${items.length}</span>${canAsk ? '<button class="link" id="askNotify"><svg class="ico-inline"><use href="#i-bell"/></svg>เปิดเสียงและป๊อปอัปแจ้งเตือน</button>' : ''}<button type="button" class="todo-x" id="todoToggle" aria-expanded="${!folded}" aria-controls="todoList">${folded ? 'แสดง' : 'ซ่อน'}<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></button></div>`
+    + (folded ? '' : items.length ? `<div class="todo-l" id="todoList">${items.map(i => `<button class="todo-i k-${i.kind}" data-goto-job="${esc(i.id)}"><span class="tk">${i.kind === 'hot' ? BOLT : ''}${esc(i.label)}</span><span class="tid">${esc(i.id)}</span><span class="tt">${esc(i.title)}</span></button>`).join('')}</div>` : '<p class="todo-0">ไม่มีงานค้าง เยี่ยมมาก</p>');
 }
 $('todo').addEventListener('click', async e => {
+  if (e.target.closest('#todoToggle')) { store.set('ct_todoFold', store.get('ct_todoFold') === '1' ? '' : '1'); renderTodo(); $('todoToggle').focus(); return; }
   if (e.target.closest('#askNotify')) { try { await Notification.requestPermission(); } catch {} unlockSound(); renderTodo(); return; }
   const b = e.target.closest('[data-goto-job]');
   if (!b) return;
