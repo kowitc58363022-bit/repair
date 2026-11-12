@@ -2893,7 +2893,7 @@ async function submitRequest(ev) {
   try {
     const res = await sendRequest({ op: 'request', location: v.location, machineType: v.machineType, machineNo: v.machineNo, problem: v.problem, impact: v.impact, photos: state.rqPhotos });
     cbClose();   // a dropdown left open would stop the "sent" screen from drawing
-    state.rqSent = { v, jobId: res.jobId, photos: res.photos || 0 };
+    state.rqSent = { v, jobId: res.jobId, photos: res.photos || 0, started: !!res.started };
     state.rqPhotos = [];
     renderThumbs();
     showSent();
@@ -2908,12 +2908,12 @@ async function submitRequest(ev) {
 }
 
 function showSent() {
-  const { v, jobId, photos } = state.rqSent;
+  const { v, jobId, photos, started } = state.rqSent;
   const own = state.meta.customer && state.meta.customer.name;
   const elsewhere = own && !belongsTo(v.location, own);
   $('rqDoneTitle').textContent = 'ส่งใบแจ้งซ่อมแล้ว · รหัสงาน ' + jobId;
   $('rqDoneText').textContent = (DEMO ? 'ตัวอย่าง: ในระบบจริงงานนี้จะบันทึกลง Google Sheet ' : 'บันทึกลงระบบแล้ว ')
-    + 'สถานะ “รอมอบหมายช่าง” ทีมซ่อมบำรุงจะติดตามงานให้'
+    + (started ? 'งานนี้อยู่ในหน้าที่ของคุณ สถานะ “On Process” เริ่มงานได้เลย' : 'สถานะ “รอมอบหมายช่าง” ทีมซ่อมบำรุงจะติดตามงานให้')
     + (photos ? ` · แนบรูป ${photos} รูป` : '')
     + (elsewhere ? ` · งานนี้แจ้งที่ ${v.location} จึงไม่แสดงในรายการของ ${own}` : '');
   $('rqDoneList').innerHTML = Object.keys(RQ_LABELS).filter(k => v[k]).map(k => `<dt>${RQ_LABELS[k]}</dt><dd>${esc(k === 'impact' ? CONFIG.IMPACT_LABELS[v[k]] || v[k] : v[k])}</dd>`).join('');
@@ -4141,9 +4141,11 @@ async function demoApi(p) {
     const engineer = sys && !open ? sys[1] : '';
     if (engineer) r.AssignedEngineerID = engineer;
     if (tech) r.AssignedEmployeeID = tech.name;   // stays WaitingEngineer until someone presses รับงาน
+    const started = u.role === 'technician' && !!tech && sameName(tech.name, u.name);   // the reporter's own job → On Process
+    if (started) r.Status = ST().work;
     (demo.actions[res.jobId] = demo.actions[res.jobId] || []).push({ time: demoNow(), username: 'system', name: 'ระบบ', role: 'system', type: 'auto',
-      detail: open ? 'ไม่ระบุประเภทเครื่อง (OTHER) · ช่างทุกคนเห็นงานนี้ ช่างคนแรกที่กดรับงานจะได้งานไป' : (tech ? 'ส่งให้ช่าง ' + tech.name + ' อัตโนมัติ · รอกดรับงาน' : 'ยังไม่มีช่างประจำระบบนี้ รอวิศวะมอบหมาย') + (engineer ? ' · วิศวะ ' + engineer : '') + ' (' + vals.filter(Boolean).join(' / ') + (tech ? ' · ตาม ' + (fromSys ? 'M_System' : 'Scope') : '') + ')' });
-    return Object.assign(res, { technician: tech ? tech.name : '', engineer });
+      detail: open ? 'ไม่ระบุประเภทเครื่อง (OTHER) · ช่างทุกคนเห็นงานนี้ ช่างคนแรกที่กดรับงานจะได้งานไป' : started ? 'ช่าง ' + tech.name + ' แจ้งงานในหน้าที่ของตัวเอง · เริ่มงานทันที (On Process)' : (tech ? 'ส่งให้ช่าง ' + tech.name + ' อัตโนมัติ · รอกดรับงาน' : 'ยังไม่มีช่างประจำระบบนี้ รอวิศวะมอบหมาย') + (engineer ? ' · วิศวะ ' + engineer : '') + ' (' + vals.filter(Boolean).join(' / ') + (tech ? ' · ตาม ' + (fromSys ? 'M_System' : 'Scope') : '') + ')' });
+    return Object.assign(res, { technician: tech ? tech.name : '', engineer, started });
   }
   const r = demo.rows.find(x => String(x.JobID) === String(p.id));
   if (!r || !demoSees(u, r)) return { error: 'ไม่พบงาน ' + p.id };
