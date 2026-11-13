@@ -1175,6 +1175,7 @@ body.pm-only .nav a:not(.pmnav),body.pm-only #phoneNav a:not(.pmnav),body.pm-onl
 /* งาน PM ของฉัน (technician, phone) */
 /* phones: the PM list only (no calendar / dashboard) */
 #phoneNav a[data-pmtab="cal"],#phoneNav a[data-pmtab="dash"]{display:none!important}
+.pmkpi:empty{display:none}   /* the 5 number cards were removed on request */
 .pmv.mine .pmbar,.pmv.mine .pmkpi,.pmv.mine .pmtabs{display:none}
 .pmme-bar{height:8px;background:#EEF1F6;border-radius:4px;margin:2px 0 6px;overflow:hidden}.pmme-bar i{display:block;height:100%;background:#14A83B;border-radius:4px}
 .pmme-f{display:flex;gap:8px;margin:12px 0 2px}.pmme-f button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:42px;border:1px solid var(--line);border-radius:999px;background:#fff;font:inherit;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer}
@@ -3584,10 +3585,8 @@ function renderPM() {
     return;
   }
   $('pmTitle').textContent = 'แผน PM';
-  const base = pmBase(), n = k => base.filter(x => x.st === k).length;
+  const base = pmBase();
   $('pmSub').textContent = (pmv.month ? MON3[pmv.month - 1] + ' ' : 'ทั้งปี ') + pmv.year + ' · ' + base.length + ' งาน' + (role() === 'technician' ? ' ของคุณ' : '');
-  $('pmKpi').innerHTML = [['', 'all', 'ตามแผน', base.length], ['done', 'done', 'เสร็จแล้ว', n('done')], ['review', 'review', 'รออนุมัติ', n('review')], ['todo', 'todo', 'ยังไม่ทำ', n('todo')], ['late', 'late', 'เลยกำหนด', n('late')]]
-    .map(([k, c, t, v]) => `<button type="button" class="${c}" data-pmst="${k}" aria-pressed="${pmv.st === k}"><b>${v}</b><span>${t}</span></button>`).join('');
   $('pmBody').innerHTML = pmv.tab === 'cal' ? pmCalendar() : pmv.tab === 'dash' ? pmDashboard() : pmListHtml();
 }
 function pmListHtml() {
@@ -3941,7 +3940,6 @@ $('pmView').addEventListener('change', e => {
 $('pmSearch').addEventListener('input', e => { pmv.q = e.target.value; pmv.shown = 150; renderPM(); });
 $('pmView').addEventListener('click', e => {
   const t = e.target.closest('[data-pmtab]'); if (t) { pmv.tab = t.dataset.pmtab; store.set('ct_pmTab', pmv.tab); renderPM(); return; }
-  const s = e.target.closest('[data-pmst]'); if (s) { pmv.st = pmv.st === s.dataset.pmst ? '' : s.dataset.pmst; renderPM(); return; }
   const dy = e.target.closest('[data-pmday]'); if (dy) { pmv.day = dy.dataset.pmday; if (pmv.day) { pmv.tab = 'list'; if (pmv.day !== 'none' && !pmv.month) pmv.month = dateOf(pmv.day).getMonth() + 1; } renderPM(); scrollTo(0, $('pmView').offsetTop - 80); return; }
   const md = e.target.closest('[data-pmmode]'); if (md) { pmv.cal.mode = md.dataset.pmmode; pmCalGo(pmv.cal.date); return; }
   const nv = e.target.closest('[data-pmnav]');
