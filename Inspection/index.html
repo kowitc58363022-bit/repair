@@ -1518,7 +1518,7 @@
     say('', 'กำลังส่งผลเข้าแผน PM…');
     try {
       const res = await fetch(PMLINK.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ op: 'pmInspect', token, id: rec.pm, date: rec.h.date, form: rec.form, period: rec.h.period, machine: rec.h.machine, inspector: rec.h.inspector, comment: rec.h.comment, rows: recRows(rec).concat(rrSendRows(rec)) }) });
+        body: JSON.stringify({ op: 'pmInspect', token, id: rec.pm, date: rec.h.date, form: rec.form, period: rec.h.period, machine: rec.h.machine, inspector: rec.h.inspector, comment: rec.h.comment, rows: recRows(rec).concat(rrSendRows(rec)), record: JSON.stringify(rec) }) });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       markSent(rec.id);
@@ -1800,10 +1800,11 @@
 
   function showPrint(id) {
     form = null; S = null;
-    const rec = store.get(HIST, []).find(r => r.id === id);
-    setNav('พิมพ์ใบตรวจ', rec ? rec.h.machine : '', true, 'ผลตรวจ'); setFormChrome(false);
+    const fromPM = id === '__view';   // a result sent to the PM plan, opened from the plan page
+    const rec = fromPM ? store.get('insp.view', null) : store.get(HIST, []).find(r => r.id === id);
+    setNav('พิมพ์ใบตรวจ', rec ? rec.h.machine : '', !fromPM, 'ผลตรวจ'); setFormChrome(false);
     if (!rec || !canPrint(rec.form)) {
-      $('app').innerHTML = `<section class="group"><div class="card"><p class="empty">${rec ? 'ฟอร์มรายวันยังพิมพ์ลงใบเดิมไม่ได้ ใช้ CSV ไปก่อน' : 'ไม่พบผลตรวจนี้ในมือถือเครื่องนี้'}</p></div></section>`;
+      $('app').innerHTML = `<section class="group"><div class="card"><p class="empty">${rec ? 'ฟอร์มรายวันยังพิมพ์ลงใบเดิมไม่ได้ ใช้ CSV ไปก่อน' : fromPM ? 'ไม่พบใบตรวจ เปิดใหม่จากหน้าแผน PM' : 'ไม่พบผลตรวจนี้ในมือถือเครื่องนี้'}</p></div></section>`;
       return;
     }
     const s = buildSheet(rec);

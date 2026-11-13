@@ -4020,7 +4020,16 @@ async function pmLoadChecklist(x) {
   const box = $('pmCk');
   if (!box || $('pmDlg').dataset.id !== x.id) return;   // another job was opened meanwhile
   if (r.error !== undefined) { box.innerHTML = '<h3>Inspection</h3><p class="pmnone">โหลดค่าวัดไม่ได้: ' + esc(r.error) + '</p>'; return; }
-  if (r.web && r.web.rows.length) { box.outerHTML = pmWebHtml(r.web); return; }
+  if (r.web && r.web.rows.length) {
+    box.outerHTML = pmWebHtml(r.web);
+    if (r.web.record) {
+      pmv.rec = r.web.record;
+      let files = document.querySelector('#pmDlgBody .pm-files .pmfiles');
+      if (!files) { document.querySelector('#pmDlgBody .pmdl').insertAdjacentHTML('afterend', '<div class="pmtbl-w pm-files"><h3>Upload Inspection</h3><div class="pmfiles"></div></div>'); files = document.querySelector('#pmDlgBody .pm-files .pmfiles'); }
+      files.insertAdjacentHTML('afterbegin', `<button type="button" data-pmview><svg class="ico-inline" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Inspection ${esc(r.web.form || '')} (ส่งจากมือถือ)</button>`);
+    }
+    return;
+  }
   if (!(r.insp || []).length && !(r.ops || []).length) { box.outerHTML = pmChecklistHtml(x).replace('<div class="pmtbl-w">', '<div class="pmtbl-w"><p class="pmnone">ไม่พบค่าวัดของงานนี้ใน AppSheet · แสดงหัวข้อตามฟอร์ม</p>'); return; }
   const v = s => s ? `<span class="pmv">${esc(s)}</span>` : '<span class="pmnone">—</span>';
   const res = s => !s ? '<span class="pmnone">—</span>' : /เสร็จ|done|ok|ผ่าน/i.test(s) && !/ไม่/.test(s) ? `<span class="pmok">${esc(s)}</span>` : `<span class="pmbad">${esc(s)}</span>`;
@@ -4140,6 +4149,8 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pmDlg')
 $('pmDlg').addEventListener('click', e => {
   if ((e.target === $('pmDlg') && !$('pmDlg').classList.contains('side')) || e.target.closest('[data-pmclose]')) { pmClose(); return; }   // the side panel stays open on a click inside it
   const fb = e.target.closest('[data-pmfile]'); if (fb) { pmOpenFile($('pmDlg').dataset.id, fb.dataset.pmfile); return; }
+  // the result sent from the phone, on its paper sheet: the Inspection page (same site) prints it from localStorage
+  if (e.target.closest('[data-pmview]') && pmv.rec) { try { localStorage.setItem('insp.view', pmv.rec); } catch {} window.open(CONFIG.INSPECTION_URL + '#/print/__view', '_blank'); return; }
   const rm = e.target.closest('[data-pmrm]'); if (rm) { pmv.files.splice(+rm.dataset.pmrm, 1); pmFileList(); return; }
   const d = e.target.closest('[data-pmdo]'); if (d && !d.disabled) pmDo(d.dataset.pmdo);
 });
