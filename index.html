@@ -404,6 +404,7 @@ td.pic .has svg{width:18px;height:18px;display:block}
 #actOk.danger{background:var(--red);border-color:var(--red);color:#fff}
 .jk .jkedit{font-size:12.5px;margin-left:4px;min-height:auto;padding:0}
 .link.adel{color:var(--red)}
+.afix{display:flex;gap:12px;margin-top:8px;padding-left:2px}
 .ts-acts li .ts-ab button.del{color:var(--red);border-color:#F3C2C4}.jk.warn b{color:#A35F00}.jk.ok b{color:#157A43}
 .jbody{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,2fr);gap:14px;align-items:start}
 .jcol{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;min-width:0}
@@ -3559,9 +3560,9 @@ function actionTableHtml(r, id) {
   const day = v => esc(dWhen(String(v || '').split(' ')[0])) || '—';
   return `<div class="atbl"><div class="atwrap"><table><thead><tr><th>#</th><th>ประเภท</th><th>ทำอะไร</th><th>PIC</th><th>Due date</th><th>ทำแล้วหรือยัง</th><th>สถานะ</th><th class="num">Cost</th></tr></thead><tbody>${items.map((a, i) => {
     const st = itemStatus(a);
-    return `<tr class="ar-${esc(String(a.type || '').toLowerCase())}"><td>${i + 1}</td><td><span class="atype t-${esc(String(a.type || '').toLowerCase())}">${esc(TYPE_LABEL(a.type))}</span></td>
+    return `<tr class="ar-${esc(String(a.type || '').toLowerCase())}"><td>${i + 1}</td><td><span class="atype t-${esc(String(a.type || '').toLowerCase())}">${esc(TYPE_LABEL(a.type))}</span>${canFixAction(statusOf(r)) && a.id ? `<span class="afix"><button class="link aedit" data-aedit="${esc(a.id)}" data-id="${esc(id)}" aria-label="แก้ไข Action ${i + 1}">แก้ไข</button> <button class="link aedit adel" data-adel="${esc(a.id)}" data-id="${esc(id)}" aria-label="ลบ Action ${i + 1}">ลบ</button></span>` : ''}</td>
       <td class="atext">${stepsHtml(a.detail)}${a.remark && a.remark !== a.detail ? `<small>หมายเหตุ: ${esc(a.remark)}</small>` : ''}${role() === 'technician' && canTick && a.id ? `<button type="button" class="link aremark" data-aremark="${esc(a.id)}" data-id="${esc(id)}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ เพิ่มหมายเหตุ'}</button>` : ''}${(a.photos || []).length ? `<small class="aphotos">${photoBtns(id, a.photos, 'รูปภาพหลังทำ Action #' + (i + 1))}</small>` : ''}</td>
-      <td>${esc(a.picOther || a.pic)}${canFixAction(statusOf(r)) && a.id ? ` <button class="link aedit" data-aedit="${esc(a.id)}" data-id="${esc(id)}" aria-label="แก้ไข Action ${i + 1}">แก้ไข</button> <button class="link aedit adel" data-adel="${esc(a.id)}" data-id="${esc(id)}" aria-label="ลบ Action ${i + 1}">ลบ</button>` : ''}</td>
+      <td>${esc(a.picOther || a.pic)}</td>
       <td${st === 'Overdue' ? ' class="alate"' : ''}>${day(a.due)}</td>
       <td>${a.finish ? '<span class="adone">✓ ทำแล้ว ' + day(a.finish) + '</span>' : `<span class="anot">ยังไม่ทำ</span>${canTick && a.id ? ` <button class="link" data-adone="${esc(a.id)}" data-id="${esc(id)}">กดเมื่อเสร็จ</button>` : ''}`}</td>
       <td><span class="ast s-${st.toLowerCase().replace(/\s+/g, '')}">${esc(st)}</span></td>
