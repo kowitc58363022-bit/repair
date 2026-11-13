@@ -1106,12 +1106,18 @@ body.phone-req .trk:not([hidden]){display:block}
 .dday{min-height:100px;min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px;color:var(--ink)}
 .dday:hover{border-color:var(--navy-2)}
 .dday.out{background:#F6F8FB;color:var(--muted)}
-.dday>b{font-size:13px;font-weight:600}
-.dday.today>b{background:var(--red);color:#fff;border-radius:999px;padding:0 7px;align-self:flex-start}
+
 .dday[aria-pressed="true"]{border-color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
 .dch{display:block;font-size:11.5px;border-radius:5px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#EAF1FD;color:#1E5BC6}
 .dch.late{background:#FDE7E8;color:#C4141B}.dch.new{background:#F1F3F6;color:#4A5370}.dch.review{background:#F1EAFD;color:#6B3FB8}.dch.done{background:#E6F4EA;color:#157A43}
 .dmore{font-size:11.5px;color:var(--muted)}
+.dday{cursor:pointer}.dday .dnum{align-self:flex-start;border:0;background:none;padding:0;font:inherit;font-size:13px;font-weight:600;color:inherit;cursor:pointer}
+.dday.today .dnum{background:var(--red);color:#fff;border-radius:999px;padding:0 7px}
+button.dch{width:100%;border:0;text-align:left;font:inherit;font-size:11.5px;cursor:pointer}button.dch:hover{filter:brightness(.95)}
+#calDlg{position:fixed;inset:0 0 0 auto;margin:0;height:100vh;max-height:100vh;width:min(720px,55vw);max-width:none;border:0;border-left:1px solid var(--line);box-shadow:-14px 0 36px #16213E30;z-index:80;overflow:auto;padding:18px 22px;background:#fff}
+#calDlg table,#calDlg tbody,#calDlg tr,#calDlg td{display:block;width:100%;border:0;padding:0}
+body.cal-side #calView{margin-right:min(720px,55vw)}
+#calDlg .jdet,#calDlg .jbody{grid-template-columns:minmax(0,1fr)}#calDlg .jdet>.jacts{grid-column:1;grid-row:2;justify-content:flex-start;flex-wrap:wrap}
 .dlegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--muted);margin:-8px 0 16px}.dlegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
 .ddayh{font-size:16px;color:var(--navy);margin:0 0 10px}
 .drow{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 120px auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-left:4px solid var(--dc,#1E6FE8);border-radius:0 12px 12px 0;padding:12px 14px;margin-bottom:8px}
@@ -1401,6 +1407,7 @@ body.sheet-open{overflow:hidden}
   </div>
 </dialog>
 
+<dialog id="calDlg" aria-label="รายละเอียดงาน"><div id="calDlgBody"></div></dialog>
 <dialog class="dlg wide" id="actDlg" aria-labelledby="actTitle">
   <form id="actForm">
     <div class="dlg-head"><h2 id="actTitle"></h2><p class="dsub" id="actSub"></p></div>
@@ -1794,6 +1801,7 @@ function render() {
   const mon = state.view === 'monitor', req = state.view === 'request', fin = state.view === 'finance', tec = state.view === 'techs', trk = state.view === 'track', fol = state.view === 'follow', dcal = state.view === 'cal';
   $('main').hidden = gate || mon || req || fin || tec || trk || fol || dcal;
   $('calView').hidden = gate || !dcal;
+  if (!dcal && $('calDlg').open) calClose();   // the panel belongs to the calendar
   $('calNav').hidden = !canFollow();
   if (!canFollow() && $('calBody').innerHTML) $('calBody').innerHTML = '';
   $('followView').hidden = gate || !fol;
@@ -2507,8 +2515,8 @@ function renderDueCal() {
   const cells = days[35].getMonth() !== m0.getMonth() ? days.slice(0, 35) : days;
   const cell = d => {
     const iso = isoDay(d), L = by[iso] || [];
-    return `<button type="button" class="dday${d.getMonth() !== m0.getMonth() ? ' out' : ''}${iso === tIso ? ' today' : ''}" data-dcday="${iso}" aria-pressed="${D.day === iso}" aria-label="${esc(dShort(d))} · ${L.length ? L.length + ' งาน' : 'ไม่มีงาน'}"><b>${d.getDate()}</b>`
-      + L.slice(0, 3).map(x => `<span class="dch ${x.cls}">${esc(v(x.r, ['MachineID', 'Machine No.']) || x.id)}</span>`).join('') + (L.length > 3 ? `<span class="dmore">+${L.length - 3}</span>` : '') + '</button>';
+    return `<div class="dday${d.getMonth() !== m0.getMonth() ? ' out' : ''}${iso === tIso ? ' today' : ''}" data-dcday="${iso}" aria-pressed="${D.day === iso}"><button type="button" class="dnum" data-dcday="${iso}" aria-label="${esc(dShort(d))} · ${L.length ? L.length + ' งาน' : 'ไม่มีงาน'}">${d.getDate()}</button>`
+      + L.slice(0, 3).map(x => `<button type="button" class="dch ${x.cls}" data-dcopen="${esc(x.id)}" title="${esc(String(x.r[c.title] ?? '').trim())}">${esc(v(x.r, ['MachineID', 'Machine No.']) || x.id)}</button>`).join('') + (L.length > 3 ? `<span class="dmore">+${L.length - 3}</span>` : '') + '</div>';
   };
   const picked = D.day === 'late' ? late : D.day === 'none' ? noDue : (by[D.day] || []);
   const title = D.day === 'late' ? 'เกินกำหนด (ยังไม่เสร็จ)' : D.day === 'none' ? 'ยังไม่กำหนด Due date' : (d => DC_DOW[d.getDay()] + ' ' + dShort(d))(new Date(+D.day.slice(0, 4), +D.day.slice(5, 7) - 1, +D.day.slice(8, 10)));
@@ -2523,13 +2531,34 @@ function renderDueCal() {
     <div class="dcal">${DC_DOW.map(w => `<span class="dow">${w}</span>`).join('')}${cells.map(cell).join('')}</div>
     <div class="dlegend"><span><i style="background:#E31B23"></i>เกินกำหนด</span><span><i style="background:#8A93A8"></i>รอรับงาน</span><span><i style="background:#1E6FE8"></i>กำลังซ่อม</span><span><i style="background:#7B4FD0"></i>รอตรวจรับ</span><span><i style="background:#2EAA62"></i>เสร็จแล้ว</span></div>
     <h2 class="ddayh">${esc(title)} · ${picked.length ? picked.length + ' งาน' : 'ไม่มีงาน'}</h2>${picked.map(row).join('')}`;
+  if ($('calDlg').open) calOpen($('calDlg').dataset.id);
 }
+// one job in the side panel: the work list's detail, its buttons work the same (jobClick)
+function calOpen(id) {
+  const c = columns(), r = state.rows.find(x => String(x[c.id]) === id);
+  const d = $('calDlg');
+  if (!r) { calClose(); return; }
+  d.dataset.id = id;
+  $('calDlgBody').innerHTML = `<table><tbody>${moreHtml(r, c, 1)}</tbody></table>`;
+  if (!d.open) d.show();
+  document.body.classList.add('cal-side');
+  const refs = [];   // its photos, same as the open row of the list (loadThumbs)
+  d.querySelectorAll('.ptile[data-ref]').forEach(t => refs.push(t.dataset.ref));
+  d.querySelectorAll('[data-refs]').forEach(b => { try { refs.push(...JSON.parse(b.dataset.refs)); } catch {} });
+  refs.forEach(x => { if (photoCache[x]) paintPhoto(x, photoCache[x]); });
+  if (refs.length) loadPhotos(id, refs);
+}
+$('calDlg').addEventListener('click', e => {
+  if (e.target.closest('[data-close-more]')) { calClose(); return; }
+  jobClick(e);
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('calDlg').open && !$('actDlg').open) calClose(); });
+function calClose() { if ($('calDlg').open) $('calDlg').close(); document.body.classList.remove('cal-side'); }
 $('calView').addEventListener('click', e => {
+  const o = e.target.closest('[data-dcopen]'); if (o) { calOpen(o.dataset.dcopen); return; }   // before the day: a job chip sits inside its day
   const d = e.target.closest('[data-dcday]'); if (d) { state.dc.day = d.dataset.dcday; renderDueCal(); return; }
   const n = e.target.closest('[data-dcnav]'); if (n) { const m = state.dc.m; state.dc.m = new Date(m.getFullYear(), m.getMonth() + +n.dataset.dcnav, 1); renderDueCal(); return; }
   if (e.target.closest('[data-dctoday]')) { state.dc = null; renderDueCal(); return; }
-  const o = e.target.closest('[data-dcopen]');
-  if (o) { state.view = 'list'; state.status = ''; state.q = ''; $('search').value = ''; state.selected = state.jumpTo = o.dataset.dcopen; history.replaceState(null, '', location.pathname); syncUrl(); render(); [...document.querySelectorAll('[data-row]')].find(r => r.dataset.row === state.selected)?.scrollIntoView({ block: 'center' }); }
 });
 // the menu badge: followed jobs that are due today or late
 function followBadge() {
@@ -4573,7 +4602,8 @@ $('filters').addEventListener('click', e => {
   const b = e.target.closest('[data-status]');
   if (b) { state.status = b.dataset.status; state.page = 1; syncUrl(); render(); stOpen(false); $('stBtn').focus(); }
 });
-$('list').addEventListener('click', e => {
+$('list').addEventListener('click', e => jobClick(e));
+function jobClick(e) {
   const pg = e.target.closest('[data-page]');
   if (pg) { state.page = +pg.dataset.page; state.selected = ''; render(); $('main').scrollIntoView({ block: 'start' }); return; }
   const ad = e.target.closest('[data-adone]');
@@ -4609,7 +4639,7 @@ $('list').addEventListener('click', e => {
   if (e.target.closest('[data-close-more]')) { toggle(state.selected); return; }
   const row = e.target.closest('tr.job');
   if (row && !String(getSelection())) toggle(row.dataset.row);
-});
+}
 
 // reloads the whole page, like F5 (the login stays; an unsent request form still asks before leaving)
 $('refreshBtn').addEventListener('click', () => {
