@@ -1156,6 +1156,12 @@ body.pm-only .nav a:not(.pmnav),body.pm-only #phoneNav a:not(.pmnav),body.pm-onl
 .pmhd{position:relative;padding-right:44px}
 .pmx{position:absolute;top:-4px;right:0;width:40px;height:40px;border:0;border-radius:50%;background:none;font-size:26px;line-height:1;color:var(--ink-2);cursor:pointer}
 .pmx:hover{background:#EEF1F6}
+#pmPdf{width:min(1000px,94vw);height:92vh;max-width:none;max-height:none;padding:0;border:0;border-radius:14px;overflow:hidden;background:#fff;box-shadow:0 20px 60px #16213E55}
+#pmPdf::backdrop{background:#16213E80}
+#pmPdf .pdfbar{position:relative;display:flex;align-items:center;height:52px;padding:0 56px 0 18px;border-bottom:1px solid var(--line)}
+#pmPdf .pdfbar b{font-size:16px;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pmPdf .pdfbar .pmx{top:6px;right:8px}
+#pmPdf iframe{display:block;width:100%;height:calc(100% - 52px);border:0;background:#EDF1F6}
 @media (min-width:701px){
   #pmDlg.side{position:fixed;inset:0 0 0 auto;margin:0;height:100vh;max-height:100vh;width:min(660px,48vw);max-width:none;border-radius:0;box-shadow:-14px 0 36px #16213E30;z-index:80;overflow:auto;padding:22px 24px}
   #pmDlg.side .efields{max-height:none;overflow:visible}
@@ -1518,6 +1524,7 @@ body.sheet-open{overflow:hidden}
     <div class="acts"><button type="submit" class="btn solid" id="actOk">บันทึก</button><button type="button" class="btn" data-close>ยกเลิก</button></div>
   </form>
 </dialog>
+<dialog id="pmPdf" aria-labelledby="pmPdfT"><div class="pdfbar"><b id="pmPdfT">Inspection</b><button type="button" class="pmx" data-pdfclose aria-label="ปิด">×</button></div><iframe id="pmPdfF" title="ใบตรวจ Inspection"></iframe></dialog>
 <dialog class="dlg wide" id="pmDlg" aria-labelledby="pmDlgTitle">
   <div class="dlg-head pmhd"><h2 id="pmDlgTitle"></h2><button type="button" class="pmx" data-pmclose aria-label="ปิด">×</button><p class="dsub" id="pmDlgSub"></p></div>
   <div class="efields" id="pmDlgBody"></div>
@@ -4026,7 +4033,8 @@ async function pmLoadChecklist(x) {
       pmv.rec = r.web.record;
       let files = document.querySelector('#pmDlgBody .pm-files .pmfiles');
       if (!files) { document.querySelector('#pmDlgBody .pmdl').insertAdjacentHTML('afterend', '<div class="pmtbl-w pm-files"><h3>Upload Inspection</h3><div class="pmfiles"></div></div>'); files = document.querySelector('#pmDlgBody .pm-files .pmfiles'); }
-      files.insertAdjacentHTML('afterbegin', `<button type="button" data-pmview><svg class="ico-inline" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Inspection ${esc(r.web.form || '')} (ส่งจากมือถือ)</button>`);
+      files.insertAdjacentHTML('afterbegin', `<button type="button" data-pmview><svg class="ico-inline" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Inspection</button>`);
+      files.querySelectorAll('[data-pmfile]').forEach(b => { if (/^Inspection/.test(b.textContent.trim()) && b.lastChild) b.lastChild.textContent += ' (AppSheet)'; });
     }
     return;
   }
@@ -4067,13 +4075,22 @@ window.addEventListener('storage', async e => {
 });
 function pmFileList() { $('pmFileList').innerHTML = pmv.files.map((x, i) => `<span>${esc(x.name)} <button type="button" data-pmrm="${i}" aria-label="ลบไฟล์ ${esc(x.name)}">×</button></span>`).join(''); }
 const readDataUrl = file => new Promise((ok, no) => { const r = new FileReader(); r.onload = () => ok(r.result); r.onerror = () => no(new Error('อ่านไฟล์ไม่ได้')); r.readAsDataURL(file); });
+function pmShowPdf(src, title) {
+  const d = $('pmPdf'), old = $('pmPdfF').src;
+  if (old.startsWith('blob:')) URL.revokeObjectURL(old);
+  $('pmPdfT').textContent = title;
+  $('pmPdfF').src = src;
+  if (!d.open) d.showModal();
+}
+$('pmPdf').addEventListener('click', e => { if (e.target === $('pmPdf') || e.target.closest('[data-pdfclose]')) $('pmPdf').close(); });
+$('pmPdf').addEventListener('close', () => { const s = $('pmPdfF').src; $('pmPdfF').src = 'about:blank'; if (s.startsWith('blob:')) URL.revokeObjectURL(s); });
 async function pmOpenFile(id, ref) {
-  const w = window.open('', '_blank');   // opened now, while the tap still counts as a user action (pop-up blockers)
+  pmShowPdf('about:blank', 'กำลังเปิดไฟล์…');
   try {
     const r = await api({ op: 'pmFile', id, ref });
-    const blob = await (await fetch(r.dataUrl)).blob(), url = URL.createObjectURL(blob);
-    if (w) w.location.href = url; else location.href = url;
-  } catch (e) { if (w) w.close(); if (!e.handled) toast(friendly(e)); }
+    const blob = await (await fetch(r.dataUrl)).blob();
+    pmShowPdf(URL.createObjectURL(blob), r.name || 'Inspection');
+  } catch (e) { $('pmPdf').close(); if (!e.handled) toast(friendly(e)); }
 }
 async function pmDo(op) {
   const id = $('pmDlg').dataset.id, x = pmFind(id), box = $('pmDlgBody'), v = n => (box.querySelector(`[name="${n}"]`) || {}).value || '';
@@ -4145,12 +4162,12 @@ $('pmView').addEventListener('click', e => {
 });
 // one way to close the PM panel (the dialog close event does not fire everywhere, so the page margin is reset here)
 function pmClose() { const d = $('pmDlg'); if (d.open) d.close(); document.body.classList.remove('pm-side'); }
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pmDlg').open && $('pmDlg').classList.contains('side')) pmClose(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && $('pmDlg').open && $('pmDlg').classList.contains('side') && !$('pmPdf').open) pmClose(); });   // Esc on the sheet popup closes only the popup
 $('pmDlg').addEventListener('click', e => {
   if ((e.target === $('pmDlg') && !$('pmDlg').classList.contains('side')) || e.target.closest('[data-pmclose]')) { pmClose(); return; }   // the side panel stays open on a click inside it
   const fb = e.target.closest('[data-pmfile]'); if (fb) { pmOpenFile($('pmDlg').dataset.id, fb.dataset.pmfile); return; }
   // the result sent from the phone, on its paper sheet: the Inspection page (same site) prints it from localStorage
-  if (e.target.closest('[data-pmview]') && pmv.rec) { try { localStorage.setItem('insp.view', pmv.rec); } catch {} window.open(CONFIG.INSPECTION_URL + '#/print/__view', '_blank'); return; }
+  if (e.target.closest('[data-pmview]') && pmv.rec) { try { localStorage.setItem('insp.view', pmv.rec); } catch {} pmShowPdf(CONFIG.INSPECTION_URL + '#/print/__view', 'Inspection · ' + ($('pmDlgTitle').textContent || '')); return; }
   const rm = e.target.closest('[data-pmrm]'); if (rm) { pmv.files.splice(+rm.dataset.pmrm, 1); pmFileList(); return; }
   const d = e.target.closest('[data-pmdo]'); if (d && !d.disabled) pmDo(d.dataset.pmdo);
 });
