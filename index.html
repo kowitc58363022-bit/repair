@@ -2708,7 +2708,7 @@ function openTrackSheet(id, quiet) {
   const jid = esc(x.id), btn = (op, label, solid) => `<button type="button" class="btn${solid ? ' solid' : ''}" data-act="${op}" data-id="${jid}">${label}</button>`;
   const todo = !mine ? '' : isNew ? btn('take', 'รับงาน', true)
     : working ? btn('action', '+ เพิ่ม Action', true) + btn('submit', 'ทำเสร็จ · ส่งให้วิศวะตรวจ') : '';
-  const dueBtn = mine && canJobDue(x.status) ? btn('jobDue', x.due ? 'แก้กำหนดเสร็จ · ' + ymd(x.due) : 'กำหนดวันเสร็จ') : '';
+  const dueBtn = mine && canJobDue(x.status, x.tech) ? btn('jobDue', x.due ? 'แก้กำหนดเสร็จ · ' + ymd(x.due) : 'กำหนดวันเสร็จ') : '';
   const canEdit = canFixAction(x.status);
   const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${canEdit ? `<button type="button" data-aedit="${esc(a.id)}" data-id="${jid}">แก้ไข</button><button type="button" class="del" data-adel="${esc(a.id)}" data-id="${jid}">ลบ</button>` : ''}${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
   $('trackSheetBody').innerHTML = `<p class="ts-id">${esc([x.id, x.machine, x.factory].filter(Boolean).join(' · '))}</p>
@@ -3265,7 +3265,7 @@ function moreHtml(r, c, span) {
   const openDays = repD ? (isDone(status) ? days(repD, finD || repD) : days(repD, today)) : null;
   const kpi = (label, val, cls, sub) => `<div class="jk${cls ? ' ' + cls : ''}"><span>${label}</span><b>${val}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
   const kpis = `<div class="jkpis${seeCost() ? '' : ' c3'}">${kpi(isDone(status) ? 'ใช้เวลา' : 'ค้างมา', openDays == null ? '—' : fmt(openDays) + ' วัน', isDone(status) ? 'ok' : late ? 'bad' : openDays > 30 ? 'warn' : '', repD ? 'แจ้ง ' + shortDate(repD) : '')}
-    ${kpi('Due date', dueD ? shortDate(dueD) : 'ยังไม่กำหนด', late && dueD ? 'bad' : '', (late && dueD ? 'เลยกำหนด ' + fmt(days(dueD, today)) + ' วัน' : dueD && !isDone(status) ? 'อีก ' + fmt(days(today, dueD)) + ' วัน' : '') + (canJobDue(status) ? ` <button type="button" class="link jkedit" data-act="jobDue" data-id="${esc(id)}">${dueD ? 'แก้ไข' : 'กำหนดวัน'}</button>` : ''))}
+    ${kpi('Due date', dueD ? shortDate(dueD) : 'ยังไม่กำหนด', late && dueD ? 'bad' : '', (late && dueD ? 'เลยกำหนด ' + fmt(days(dueD, today)) + ' วัน' : dueD && !isDone(status) ? 'อีก ' + fmt(days(today, dueD)) + ' วัน' : '') + (canJobDue(status, tech) ? ` <button type="button" class="link jkedit" data-act="jobDue" data-id="${esc(id)}">${dueD ? 'แก้ไข' : 'กำหนดวัน'}</button>` : ''))}
     ${kpi('Action', items.length ? doneN + ' / ' + items.length + ' เสร็จ' : 'ยังไม่มี', items.length && doneN === items.length ? 'ok' : '', !items.length && isWork(status) ? 'ต้องมีก่อนส่งงาน' : '')}
     ${seeCost() ? kpi('ค่าใช้จ่าย', cost ? fmt(cost) + ' ฿' : '0 ฿', '', '') : ''}</div>`;
 
@@ -3469,7 +3469,7 @@ const M = () => state.meta || {};
 const ST = () => M().status || { new: 'WaitingEngineer', work: 'On Process', review: 'WaitingReview', done: 'Complete' };
 const isWork = s => (M().workStatuses || ['On Process', 'Overdue']).some(x => norm(x) === norm(s));
 // who may change the job's due date: an engineer / admin until the job is closed, the technician until it is sent for review
-const canJobDue = s => isEngR() ? !isDone(s) : role() === 'technician' && (isWork(s) || norm(s) === norm(ST().new));
+const canJobDue = (s, tech) => isEngR() ? !isDone(s) : role() === 'technician' && samePerson(tech, state.user.name) && (isWork(s) || norm(s) === norm(ST().new));
 // who may correct / delete an action: an engineer / admin, the technician while the job is being worked on
 const canFixAction = s => isEngR() ? !isDone(s) : role() === 'technician' && isWork(s);
 
@@ -4383,10 +4383,10 @@ async function demoApi(p) {
     if (!err) {
       list.splice(list.indexOf(a), 1);
       r.PrimaryAction = r.Progress = list.length ? list[list.length - 1].detail : '';
-      log(r.JobID, 'actionDelete', (u.role === 'technician' ? 'ช่างลบ Action ' : u.role === 'admin' ? 'แอดมินลบ Action ' : 'วิศวะลบ Action ') + a.id + ' · ' + a.detail + (note ? ' · เหตุผล: ' + note : ''));
+      log(r.JobID, 'actionDelete', (u.role === 'technician' ? 'ช่างลบ Action ' : u.role === 'admin' ? 'แอดมินลบ Action ' : 'วิศวะลบ Action ') + a.id + ' · ' + a.detail + ' (' + [['ประเภท', a.type], ['PIC', a.pic], ['PIC อื่น', a.picOther], ['Due', a.due], ['เสร็จ', a.finish], ['Cost', a.cost], ['หมายเหตุ', a.remark]].filter(p => p[1]).map(p => p.join(' ')).join(' · ') + ')' + (note ? ' · เหตุผล: ' + note : ''), a.photos || []);
     }
   } else if (p.op === 'jobDue') {
-    err = need(['engineer', 'technician']) || (u.role === 'technician' ? !(isWork(st) || st === S.new) && 'ช่างแก้กำหนดเสร็จได้เฉพาะงานที่ยังไม่ส่งให้วิศวะตรวจ' : isDone(st) && 'งานนี้ปิดแล้ว')
+    err = need(['engineer', 'technician']) || (u.role === 'technician' && !sameName(r.AssignedEmployeeID, u.name) && 'ช่างแก้กำหนดเสร็จได้เฉพาะงานที่ตัวเองรับแล้ว') || (u.role === 'technician' ? !(isWork(st) || st === S.new) && 'ช่างแก้กำหนดเสร็จได้เฉพาะงานที่ยังไม่ส่งให้วิศวะตรวจ' : isDone(st) && 'งานนี้ปิดแล้ว')
       || (!/^\d{4}-\d{2}-\d{2}$/.test(p.due || '') && 'กรุณาใส่กำหนดเสร็จ') || (p.due < isoDay(new Date()) && 'กำหนดเสร็จต้องไม่ก่อนวันนี้');
     if (!err) {
       const before = String(r.DueDateTime || '').split(' ')[0];
