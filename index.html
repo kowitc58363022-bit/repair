@@ -1093,6 +1093,35 @@ body.phone-req .trk:not([hidden]){display:block}
 .fwcard .b{display:flex;flex-direction:column;gap:6px}.fwcard .b .btn{min-height:34px;padding:4px 12px;font-size:13px;justify-content:center;white-space:nowrap}
 .fwempty{padding:28px;text-align:center;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px}
 .btn.fwon{border-color:#E8860C;color:#A35F00;background:#FFF8EC}
+/* ปฏิทินงาน (admin): jobs on their Due date */
+.dcal-h{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.dcal-h b{font-family:var(--head-font);font-size:18px;color:var(--navy);min-width:110px;text-align:center}
+.dcal-h button{min-height:38px;min-width:38px;border:1px solid var(--line);border-radius:999px;background:#fff;font:inherit;font-size:14px;color:var(--navy);cursor:pointer;padding:0 12px}
+.dcal-h .sp{margin-left:auto}
+.dcal-h .late{border-color:#F3B7BA;background:#FFF5F5;color:#C4141B;font-weight:600}
+.dcal-h button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
+.dcal-h .late[aria-pressed="true"]{background:#E31B23;border-color:#E31B23}
+.dcal{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-bottom:18px}
+.dcal .dow{font-size:12.5px;color:var(--muted);text-align:center;padding-bottom:2px}
+.dday{min-height:100px;min-width:0;border:1px solid var(--line);border-radius:10px;background:#fff;padding:6px;text-align:left;font:inherit;cursor:pointer;display:flex;flex-direction:column;gap:3px;color:var(--ink)}
+.dday:hover{border-color:var(--navy-2)}
+.dday.out{background:#F6F8FB;color:var(--muted)}
+.dday>b{font-size:13px;font-weight:600}
+.dday.today>b{background:var(--red);color:#fff;border-radius:999px;padding:0 7px;align-self:flex-start}
+.dday[aria-pressed="true"]{border-color:var(--navy);box-shadow:inset 0 0 0 1px var(--navy)}
+.dch{display:block;font-size:11.5px;border-radius:5px;padding:1px 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:#EAF1FD;color:#1E5BC6}
+.dch.late{background:#FDE7E8;color:#C4141B}.dch.new{background:#F1F3F6;color:#4A5370}.dch.review{background:#F1EAFD;color:#6B3FB8}.dch.done{background:#E6F4EA;color:#157A43}
+.dmore{font-size:11.5px;color:var(--muted)}
+.dlegend{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--muted);margin:-8px 0 16px}.dlegend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.ddayh{font-size:16px;color:var(--navy);margin:0 0 10px}
+.drow{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 120px auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-left:4px solid var(--dc,#1E6FE8);border-radius:0 12px 12px 0;padding:12px 14px;margin-bottom:8px}
+.drow.late{--dc:#E31B23}.drow.new{--dc:#8A93A8}.drow.review{--dc:#7B4FD0}.drow.done{--dc:#2EAA62}
+.drow .t b{display:block;font-size:15px;color:var(--ink)}.drow .t small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.drow .w{font-size:13px;color:var(--ink-2)}.drow .w b{color:var(--ink);font-weight:600}
+.drow .d{font-size:13px;color:var(--muted)}.drow.late .d{color:#C4141B;font-weight:600}
+.drow .btn{min-height:36px;padding:4px 14px;font-size:13px}
+@media (max-width:900px){.drow{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:700px){.dday{min-height:56px;padding:4px;gap:2px}.dch{font-size:0;height:6px;padding:0;border-radius:3px}.dmore{font-size:10.5px}.dcal{gap:4px}}
 @media (max-width:900px){.fwcard{grid-template-columns:minmax(0,1fr)}.fwcard .d{text-align:left}.fwcard .b{flex-direction:row;flex-wrap:wrap}}
 .tsort{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13.5px;color:var(--muted)}
 .tsort>span{flex:none}
@@ -1327,6 +1356,11 @@ body.sheet-open{overflow:hidden}
   <div class="head"><h1 id="followTitle">งานที่ติดตาม</h1><p class="sub" id="followSub"></p></div>
   <div id="followBody"></div>
 </section>
+<section class="mon fin" id="calView" hidden aria-labelledby="calTitle">
+  <span id="cal" class="sr"></span>
+  <div class="head"><h1 id="calTitle">ปฏิทินงาน</h1><p class="sub" id="calSub"></p></div>
+  <div id="calBody"></div>
+</section>
 <section class="mon fin" id="techView" hidden aria-labelledby="techTitle">
   <span id="techs" class="sr"></span>
   <div class="head"><h1 id="techTitle">งานของช่าง</h1><p class="sub" id="techSub"></p></div>
@@ -1347,6 +1381,7 @@ body.sheet-open{overflow:hidden}
   <a href="#monitor" data-view="monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span class="lbl">ภาพรวม (Monitoring)<small>กราฟและตัวเลขสรุป</small></span></a>
   <a href="#finance" data-view="finance" id="finNav"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.5v9M9.5 7.5h3.2a2 2 0 0 1 0 4.2H9.5m0 0h3.6a2.2 2.2 0 0 1 0 4.4H9.5M11 6v1.5M11 16.5V18"/></svg><span class="lbl">ค่าใช้จ่าย<small>สรุปเงินตามโรงงาน / เครื่องจักร</small></span></a>
   <a href="#follow" data-view="follow" id="followNav" hidden><span class="nbadge" id="followBadge" hidden></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span class="lbl">งานที่ติดตาม<small>แอดมิน · วันที่คาดว่าจะเสร็จ</small></span></a>
+  <a href="#cal" data-view="cal" id="calNav" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg><span class="lbl">ปฏิทินงาน<small>แอดมิน · งานตามวัน Due date</small></span></a>
   <a href="#techs" data-view="techs" id="techNav" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.6a3.2 3.2 0 0 1 0 6.3M18 14.4c1.8.8 3 2.7 3 5.6"/></svg><span class="lbl">งานของช่าง<small>ช่างแต่ละคนทำถึงไหน · Export Excel</small></span></a>
 </nav>
 <nav class="pnav" id="phoneNav" aria-label="เมนูมือถือ">
@@ -1491,7 +1526,7 @@ document.addEventListener('click', e => {
   state.fac = b.dataset.fac; state.page = 1; state.selected = '';
   render();
 });
-function viewOf(hash) { return hash === '#monitor' ? 'monitor' : hash === '#request' ? 'request' : hash === '#finance' ? 'finance' : hash === '#techs' ? 'techs' : hash === '#track' ? 'track' : hash === '#follow' ? 'follow' : 'list'; }
+function viewOf(hash) { return hash === '#monitor' ? 'monitor' : hash === '#request' ? 'request' : hash === '#finance' ? 'finance' : hash === '#techs' ? 'techs' : hash === '#track' ? 'track' : hash === '#follow' ? 'follow' : hash === '#cal' ? 'cal' : 'list'; }
 const hashOf = v => v === 'list' ? '' : '#' + v;
 const store = {
   get(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
@@ -1716,6 +1751,7 @@ const HERO_ICON = {
   monitor: '<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
   techs: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.6a3.2 3.2 0 0 1 0 6.3M18 14.4c1.8.8 3 2.7 3 5.6"/>',
   follow: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
+  cal: '<rect x="3.5" y="5" width="17" height="15.5" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/>',
   finance: '<circle cx="12" cy="12" r="9"/><path d="M9.5 7.5v9M9.5 7.5h3.2a2 2 0 0 1 0 4.2H9.5m0 0h3.6a2.2 2.2 0 0 1 0 4.4H9.5M11 6v1.5M11 16.5V18"/>',
 };
 const HERO = {
@@ -1724,6 +1760,7 @@ const HERO = {
   list: { chip: 'รายการงาน · Work orders', th: 'รายการงานซ่อม', en: 'Track every <b>Work Order</b>', bubble: 'ติดตามทุกงานที่นี่' },
   monitor: { chip: 'ภาพรวม · Monitoring', th: 'ภาพรวมงานซ่อม', en: 'Maintenance <b>Pipeline</b>', bubble: 'งานไหนติดขั้นไหน ดูได้เลย' },
   techs: { chip: 'งานของช่าง · Technicians', th: 'งานของช่าง', en: 'Technician <b>Workload</b>', bubble: 'ใครทำถึงไหน ดูได้ที่นี่' },
+  cal: { chip: 'ปฏิทินงาน · Admin', th: 'ปฏิทินงานซ่อม', en: 'Due date <b>Calendar</b>', bubble: 'งานไหนครบกำหนดวันไหน ดูได้เลย' },
   follow: { chip: 'ติดตามงาน · Admin', th: 'งานที่ติดตาม', en: 'Follow-up <b>Tracker</b>', bubble: 'งานไหนใกล้ครบกำหนด ดูได้ที่นี่' },
   finance: { chip: 'ค่าใช้จ่าย · Cost', th: 'ค่าใช้จ่ายงานซ่อม', en: 'Maintenance <b>Cost</b> Overview', bubble: 'คุมงบซ่อมได้ทุกโรงงาน' },
 };
@@ -1751,10 +1788,14 @@ function render() {
   const gate = needsCode();
   $('gate').hidden = !gate;
   if (state.view === 'finance' && state.user && !canCost()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // this role has no cost tab
+  if (state.view === 'cal' && state.user && !canFollow()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // admin only
   if (state.view === 'follow' && state.user && !canFollow()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // admin only
   if (state.view === 'techs' && state.user && !canTechs()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // admin only
-  const mon = state.view === 'monitor', req = state.view === 'request', fin = state.view === 'finance', tec = state.view === 'techs', trk = state.view === 'track', fol = state.view === 'follow';
-  $('main').hidden = gate || mon || req || fin || tec || trk || fol;
+  const mon = state.view === 'monitor', req = state.view === 'request', fin = state.view === 'finance', tec = state.view === 'techs', trk = state.view === 'track', fol = state.view === 'follow', dcal = state.view === 'cal';
+  $('main').hidden = gate || mon || req || fin || tec || trk || fol || dcal;
+  $('calView').hidden = gate || !dcal;
+  $('calNav').hidden = !canFollow();
+  if (!canFollow() && $('calBody').innerHTML) $('calBody').innerHTML = '';
   $('followView').hidden = gate || !fol;
   $('followNav').hidden = !canFollow();
   if (!canFollow() && $('followBody').innerHTML) $('followBody').innerHTML = '';   // another account signed in on this page
@@ -1801,6 +1842,7 @@ function render() {
   if (fin) { loadCosts(); renderFinance(); return; }
   if (tec) { renderTechs(); return; }
   if (fol) { renderFollow(); return; }
+  if (dcal) { renderDueCal(); return; }
   if (trk) { renderTrack(); return; }
   if (phone) renderTrack();   // keeps the open-job count on the bottom bar current
   if (req) { renderRequest(); return; }
@@ -2442,6 +2484,53 @@ function renderFollow() {
     }).join('') + '</section>';
   }).join('') + '</div>';
 }
+// ---------- ปฏิทินงาน (admin): every job on its Due date ----------
+const DC_DOW = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
+function renderDueCal() {
+  if (!state.dc) { const t = new Date(); state.dc = { m: new Date(t.getFullYear(), t.getMonth(), 1), day: isoDay(t) }; }
+  const D = state.dc, m0 = D.m, c = columns(), today = new Date(); today.setHours(0, 0, 0, 0);
+  const tIso = isoDay(today), dueK = findCol(['DueDateTime', 'Due date']);
+  const v = (r, names) => { const k = findCol(names); return k ? String(r[k] ?? '').trim() : ''; };
+  const jobs = state.rows.map(r => {
+    const st = statusOf(r), done = isDone(st), due = dueK ? parseAny(String(r[dueK] ?? '').trim()) : null;
+    const late = !done && ((due && due < today) || LATE.test(st));
+    return { r, id: String(r[c.id]), st, due, done, cls: done ? 'done' : late ? 'late' : stageOf(st) || 'new' };
+  });
+  const by = {};
+  jobs.forEach(x => { if (x.due) (by[isoDay(x.due)] = by[isoDay(x.due)] || []).push(x); });
+  const ORD = { late: 0, work: 1, new: 2, review: 3, done: 4 };
+  Object.values(by).forEach(L => L.sort((a, b) => (ORD[a.cls] ?? 2) - (ORD[b.cls] ?? 2)));
+  const late = jobs.filter(x => x.cls === 'late').sort((a, b) => (a.due || 0) - (b.due || 0));
+  const noDue = jobs.filter(x => !x.due && !x.done);
+  const start = new Date(m0.getFullYear(), m0.getMonth(), 1 - m0.getDay());
+  const days = Array.from({ length: 42 }, (_, i) => new Date(start.getFullYear(), start.getMonth(), start.getDate() + i));
+  const cells = days[35].getMonth() !== m0.getMonth() ? days.slice(0, 35) : days;
+  const cell = d => {
+    const iso = isoDay(d), L = by[iso] || [];
+    return `<button type="button" class="dday${d.getMonth() !== m0.getMonth() ? ' out' : ''}${iso === tIso ? ' today' : ''}" data-dcday="${iso}" aria-pressed="${D.day === iso}" aria-label="${esc(dShort(d))} · ${L.length ? L.length + ' งาน' : 'ไม่มีงาน'}"><b>${d.getDate()}</b>`
+      + L.slice(0, 3).map(x => `<span class="dch ${x.cls}">${esc(v(x.r, ['MachineID', 'Machine No.']) || x.id)}</span>`).join('') + (L.length > 3 ? `<span class="dmore">+${L.length - 3}</span>` : '') + '</button>';
+  };
+  const picked = D.day === 'late' ? late : D.day === 'none' ? noDue : (by[D.day] || []);
+  const title = D.day === 'late' ? 'เกินกำหนด (ยังไม่เสร็จ)' : D.day === 'none' ? 'ยังไม่กำหนด Due date' : (d => DC_DOW[d.getDay()] + ' ' + dShort(d))(new Date(+D.day.slice(0, 4), +D.day.slice(5, 7) - 1, +D.day.slice(8, 10)));
+  const inMonth = jobs.filter(x => x.due && x.due.getMonth() === m0.getMonth() && x.due.getFullYear() === m0.getFullYear());
+  $('calSub').textContent = `${MON3[m0.getMonth()]} ${m0.getFullYear()} · ครบกำหนด ${inMonth.length} งาน · ยังไม่เสร็จ ${inMonth.filter(x => !x.done).length}`;
+  const row = x => `<div class="drow ${x.cls}"><div class="t"><b>${esc(String(x.r[c.title] ?? '').trim() || '—')}</b><small>${esc([x.id, v(x.r, ['MachineID', 'Machine No.']), v(x.r, ['FactoryID', 'Location']), x.st].filter(Boolean).join(' · '))}</small></div>
+    <div class="w">ช่าง <b>${esc(techOf(x.r) || '—')}</b></div>
+    <div class="d">${x.due ? 'Due ' + esc(dShort(x.due)) + (x.cls === 'late' ? ' · เลย ' + Math.round((today - x.due) / DAY) + ' วัน' : '') : 'ยังไม่กำหนด'}</div>
+    <button type="button" class="btn" data-dcopen="${esc(x.id)}">เปิดงาน</button></div>`;
+  $('calBody').innerHTML = `<div class="dcal-h"><button type="button" data-dcnav="-1" aria-label="เดือนก่อน">‹</button><b>${MON3[m0.getMonth()]} ${m0.getFullYear()}</b><button type="button" data-dcnav="1" aria-label="เดือนถัดไป">›</button><button type="button" data-dctoday>วันนี้</button>
+      <span class="sp"></span>${late.length ? `<button type="button" class="late" data-dcday="late" aria-pressed="${D.day === 'late'}">เกินกำหนด ${late.length}</button>` : ''}${noDue.length ? `<button type="button" data-dcday="none" aria-pressed="${D.day === 'none'}">ไม่มี Due date ${noDue.length}</button>` : ''}</div>
+    <div class="dcal">${DC_DOW.map(w => `<span class="dow">${w}</span>`).join('')}${cells.map(cell).join('')}</div>
+    <div class="dlegend"><span><i style="background:#E31B23"></i>เกินกำหนด</span><span><i style="background:#8A93A8"></i>รอรับงาน</span><span><i style="background:#1E6FE8"></i>กำลังซ่อม</span><span><i style="background:#7B4FD0"></i>รอตรวจรับ</span><span><i style="background:#2EAA62"></i>เสร็จแล้ว</span></div>
+    <h2 class="ddayh">${esc(title)} · ${picked.length ? picked.length + ' งาน' : 'ไม่มีงาน'}</h2>${picked.map(row).join('')}`;
+}
+$('calView').addEventListener('click', e => {
+  const d = e.target.closest('[data-dcday]'); if (d) { state.dc.day = d.dataset.dcday; renderDueCal(); return; }
+  const n = e.target.closest('[data-dcnav]'); if (n) { const m = state.dc.m; state.dc.m = new Date(m.getFullYear(), m.getMonth() + +n.dataset.dcnav, 1); renderDueCal(); return; }
+  if (e.target.closest('[data-dctoday]')) { state.dc = null; renderDueCal(); return; }
+  const o = e.target.closest('[data-dcopen]');
+  if (o) { state.view = 'list'; state.status = ''; state.q = ''; $('search').value = ''; state.selected = state.jumpTo = o.dataset.dcopen; history.replaceState(null, '', location.pathname); syncUrl(); render(); [...document.querySelectorAll('[data-row]')].find(r => r.dataset.row === state.selected)?.scrollIntoView({ block: 'center' }); }
+});
 // the menu badge: followed jobs that are due today or late
 function followBadge() {
   const el = $('followBadge'); if (!el) return;
