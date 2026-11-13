@@ -400,7 +400,11 @@ td.pic .has svg{width:18px;height:18px;display:block}
 .jk span{display:block;font-size:12.5px;color:var(--muted)}
 .jk b{display:block;font-family:var(--head-font);font-size:19px;font-weight:600;color:var(--ink);line-height:1.25}
 .jk small{display:block;font-size:12px;color:var(--muted)}
-.jk.bad b,.jk.bad small{color:var(--red)}.jk.warn b{color:#A35F00}.jk.ok b{color:#157A43}
+.jk.bad b,.jk.bad small{color:var(--red)}
+#actOk.danger{background:var(--red);border-color:var(--red);color:#fff}
+.jk .jkedit{font-size:12.5px;margin-left:4px;min-height:auto;padding:0}
+.link.adel{color:var(--red)}
+.ts-acts li .ts-ab button.del{color:var(--red);border-color:#F3C2C4}.jk.warn b{color:#A35F00}.jk.ok b{color:#157A43}
 .jbody{display:grid;grid-template-columns:minmax(260px,1fr) minmax(0,2fr);gap:14px;align-items:start}
 .jcol{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 18px;min-width:0}
 .jcol h4{margin:0 0 10px;font-family:var(--head-font);font-size:15.5px;color:var(--navy);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
@@ -533,6 +537,8 @@ td.pic .has .pic-cnt{position:absolute;top:-3px;right:-3px;background:var(--navy
 .fhint:empty{display:none}
 .fhint b{color:var(--navy)}
 .fhint .link{padding:0;font-size:13.5px}
+.fbox input[type=date]{appearance:none;-webkit-appearance:none;text-align:left}
+#rqDueChips{margin-top:10px}
 .rql .opt{font-family:'Anuphan',sans-serif;font-weight:400;font-size:13.5px;color:var(--muted)}
 .drop{display:flex;flex-direction:column;align-items:center;gap:4px;border:1.5px dashed var(--rule);border-radius:16px;background:var(--hover);padding:26px 16px;cursor:pointer;text-align:center;transition:border-color .15s,background-color .15s}
 .drop:hover,.drop.over{border-color:var(--navy-2);background:var(--navy-bg)}
@@ -1071,6 +1077,21 @@ body.phone-req .trk:not([hidden]){display:block}
 .ttabs button span{display:inline-block;margin-left:4px;padding:0 7px;border-radius:999px;background:#EEF1F6;font-size:12.5px}
 .ttabs button[aria-pressed="true"]{background:var(--navy);border-color:var(--navy);color:#fff}
 .ttabs button[aria-pressed="true"] span{background:#ffffff2e}
+.fwlist{display:flex;flex-direction:column;gap:18px}
+.fwgrp h2{display:flex;align-items:center;gap:8px;font-size:16px;margin:0 0 8px;color:var(--navy)}
+.fwgrp h2 span{font-size:12.5px;background:#EEF1F6;color:var(--ink-2);border-radius:999px;padding:1px 9px}
+.fwgrp.late h2{color:#C4141B}.fwgrp.today h2{color:#A35F00}.fwgrp.done h2{color:#157A43}
+.fwcard{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) 150px auto;gap:12px;align-items:center;background:#fff;border:1px solid var(--line);border-left:4px solid var(--fc,#8A97B0);border-radius:12px;padding:12px 14px}
+.fwgrp.late .fwcard{--fc:#E31B23}.fwgrp.today .fwcard{--fc:#E8860C}.fwgrp.soon .fwcard{--fc:#1E6FE8}.fwgrp.done .fwcard{--fc:#2EAA62}
+.fwcard .t b{display:block;font-size:15px;color:var(--ink)}.fwcard .t small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.fwcard .t .nt{display:block;margin-top:6px;font-size:13px;color:var(--ink-2);background:#F6F8FC;border-radius:8px;padding:5px 9px}
+.fwcard .w{font-size:13px;color:var(--ink-2);line-height:1.5}.fwcard .w b{color:var(--ink);font-weight:600}
+.fwcard .d{text-align:right}.fwcard .d b{display:block;font-size:15px;color:var(--ink)}.fwcard .d small{font-size:12.5px;font-weight:600}
+.fwgrp.late .d small{color:#C4141B}.fwgrp.today .d small{color:#A35F00}.fwgrp .d small{color:var(--muted)}
+.fwcard .b{display:flex;flex-direction:column;gap:6px}.fwcard .b .btn{min-height:34px;padding:4px 12px;font-size:13px;justify-content:center;white-space:nowrap}
+.fwempty{padding:28px;text-align:center;color:var(--muted);background:#fff;border:1px solid var(--line);border-radius:12px}
+.btn.fwon{border-color:#E8860C;color:#A35F00;background:#FFF8EC}
+@media (max-width:900px){.fwcard{grid-template-columns:minmax(0,1fr)}.fwcard .d{text-align:left}.fwcard .b{flex-direction:row;flex-wrap:wrap}}
 .tsort{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:13.5px;color:var(--muted)}
 .tsort>span{flex:none}
 .tsort .tsg{display:flex;flex:1;border:1px solid var(--line);border-radius:999px;background:#fff;padding:3px}
@@ -1262,7 +1283,14 @@ body.sheet-open{overflow:hidden}
         </div>
       </div>
       <div class="rqf">
-        <div class="rql"><span class="num">6</span><span id="rqPhotoLbl">รูปภาพ <small class="en">Photos</small></span><span class="opt">(ไม่บังคับ สูงสุด 5 รูป)</span></div>
+        <div class="rql"><span class="num">6</span><label for="rqDue">กำหนดเสร็จ <small class="en">Due date</small></label><span class="opt">(ไม่บังคับ วันที่ต้องการให้ซ่อมเสร็จ)</span></div>
+        <div class="fbox"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></svg>
+          <input type="date" id="rqDue" name="due" aria-describedby="rqDueErr"></div>
+        <div class="qchips" id="rqDueChips" aria-label="เลือกวันเร็ว"><button type="button" class="qchip" data-qd="0">วันนี้</button><button type="button" class="qchip" data-qd="1">พรุ่งนี้</button><button type="button" class="qchip" data-qd="3">3 วัน</button><button type="button" class="qchip" data-qd="7">1 สัปดาห์</button><button type="button" class="qchip" data-qd="">ไม่กำหนด</button></div>
+        <p class="ferr" id="rqDueErr"></p>
+      </div>
+      <div class="rqf">
+        <div class="rql"><span class="num">7</span><span id="rqPhotoLbl">รูปภาพ <small class="en">Photos</small></span><span class="opt">(ไม่บังคับ สูงสุด 5 รูป)</span></div>
         <label class="drop" id="rqDrop">
           <input type="file" id="rqFiles" class="sr" accept="image/jpeg,image/png,image/webp" multiple aria-labelledby="rqPhotoLbl" aria-describedby="rqFilesErr">
           <span class="dico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></svg></span>
@@ -1291,6 +1319,11 @@ body.sheet-open{overflow:hidden}
   <div class="head"><h1 id="finTitle">ค่าใช้จ่ายงานซ่อม</h1><p class="sub" id="finSub"></p></div>
   <div id="finBody"></div>
 </section>
+<section class="mon fin" id="followView" hidden aria-labelledby="followTitle">
+  <span id="follow" class="sr"></span>
+  <div class="head"><h1 id="followTitle">งานที่ติดตาม</h1><p class="sub" id="followSub"></p></div>
+  <div id="followBody"></div>
+</section>
 <section class="mon fin" id="techView" hidden aria-labelledby="techTitle">
   <span id="techs" class="sr"></span>
   <div class="head"><h1 id="techTitle">งานของช่าง</h1><p class="sub" id="techSub"></p></div>
@@ -1310,6 +1343,7 @@ body.sheet-open{overflow:hidden}
   <a href="#list" data-view="list"><span class="nbadge" hidden></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4.5 6h.01M4.5 12h.01M4.5 18h.01" stroke-width="3"/></svg><span class="lbl">รายการงาน<small>ตารางงานซ่อมทั้งหมด</small></span></a>
   <a href="#monitor" data-view="monitor"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg><span class="lbl">ภาพรวม (Monitoring)<small>กราฟและตัวเลขสรุป</small></span></a>
   <a href="#finance" data-view="finance" id="finNav"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 7.5v9M9.5 7.5h3.2a2 2 0 0 1 0 4.2H9.5m0 0h3.6a2.2 2.2 0 0 1 0 4.4H9.5M11 6v1.5M11 16.5V18"/></svg><span class="lbl">ค่าใช้จ่าย<small>สรุปเงินตามโรงงาน / เครื่องจักร</small></span></a>
+  <a href="#follow" data-view="follow" id="followNav" hidden><span class="nbadge" id="followBadge" hidden></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg><span class="lbl">งานที่ติดตาม<small>แอดมิน · วันที่คาดว่าจะเสร็จ</small></span></a>
   <a href="#techs" data-view="techs" id="techNav" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.6a3.2 3.2 0 0 1 0 6.3M18 14.4c1.8.8 3 2.7 3 5.6"/></svg><span class="lbl">งานของช่าง<small>ช่างแต่ละคนทำถึงไหน · Export Excel</small></span></a>
 </nav>
 <nav class="pnav" id="phoneNav" aria-label="เมนูมือถือ">
@@ -1454,7 +1488,7 @@ document.addEventListener('click', e => {
   state.fac = b.dataset.fac; state.page = 1; state.selected = '';
   render();
 });
-function viewOf(hash) { return hash === '#monitor' ? 'monitor' : hash === '#request' ? 'request' : hash === '#finance' ? 'finance' : hash === '#techs' ? 'techs' : hash === '#track' ? 'track' : 'list'; }
+function viewOf(hash) { return hash === '#monitor' ? 'monitor' : hash === '#request' ? 'request' : hash === '#finance' ? 'finance' : hash === '#techs' ? 'techs' : hash === '#track' ? 'track' : hash === '#follow' ? 'follow' : 'list'; }
 const hashOf = v => v === 'list' ? '' : '#' + v;
 const store = {
   get(k) { try { return localStorage.getItem(k) || ''; } catch { return ''; } },
@@ -1678,6 +1712,7 @@ const HERO_ICON = {
   list: '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4.5h6V3H9zM8.5 10l1.5 1.5 3-3M8.5 16l1.5 1.5 3-3M15 10.5h1M15 16.5h1"/>',
   monitor: '<path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/>',
   techs: '<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><path d="M16 4.6a3.2 3.2 0 0 1 0 6.3M18 14.4c1.8.8 3 2.7 3 5.6"/>',
+  follow: '<path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/>',
   finance: '<circle cx="12" cy="12" r="9"/><path d="M9.5 7.5v9M9.5 7.5h3.2a2 2 0 0 1 0 4.2H9.5m0 0h3.6a2.2 2.2 0 0 1 0 4.4H9.5M11 6v1.5M11 16.5V18"/>',
 };
 const HERO = {
@@ -1686,6 +1721,7 @@ const HERO = {
   list: { chip: 'รายการงาน · Work orders', th: 'รายการงานซ่อม', en: 'Track every <b>Work Order</b>', bubble: 'ติดตามทุกงานที่นี่' },
   monitor: { chip: 'ภาพรวม · Monitoring', th: 'ภาพรวมงานซ่อม', en: 'Maintenance <b>Pipeline</b>', bubble: 'งานไหนติดขั้นไหน ดูได้เลย' },
   techs: { chip: 'งานของช่าง · Technicians', th: 'งานของช่าง', en: 'Technician <b>Workload</b>', bubble: 'ใครทำถึงไหน ดูได้ที่นี่' },
+  follow: { chip: 'ติดตามงาน · Admin', th: 'งานที่ติดตาม', en: 'Follow-up <b>Tracker</b>', bubble: 'งานไหนใกล้ครบกำหนด ดูได้ที่นี่' },
   finance: { chip: 'ค่าใช้จ่าย · Cost', th: 'ค่าใช้จ่ายงานซ่อม', en: 'Maintenance <b>Cost</b> Overview', bubble: 'คุมงบซ่อมได้ทุกโรงงาน' },
 };
 const svgI = k => `<svg viewBox="0 0 24 24" aria-hidden="true">${HERO_ICON[k]}</svg>`;
@@ -1712,9 +1748,14 @@ function render() {
   const gate = needsCode();
   $('gate').hidden = !gate;
   if (state.view === 'finance' && state.user && !canCost()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // this role has no cost tab
+  if (state.view === 'follow' && state.user && !canFollow()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // admin only
   if (state.view === 'techs' && state.user && !canTechs()) { state.view = 'list'; history.replaceState(null, '', location.pathname + location.search); }   // admin only
-  const mon = state.view === 'monitor', req = state.view === 'request', fin = state.view === 'finance', tec = state.view === 'techs', trk = state.view === 'track';
-  $('main').hidden = gate || mon || req || fin || tec || trk;
+  const mon = state.view === 'monitor', req = state.view === 'request', fin = state.view === 'finance', tec = state.view === 'techs', trk = state.view === 'track', fol = state.view === 'follow';
+  $('main').hidden = gate || mon || req || fin || tec || trk || fol;
+  $('followView').hidden = gate || !fol;
+  $('followNav').hidden = !canFollow();
+  if (!canFollow() && $('followBody').innerHTML) $('followBody').innerHTML = '';   // another account signed in on this page
+  followBadge();
   $('trackView').hidden = gate || !trk;
   if (!trk && !$('trackSheet').hidden) { $('trackSheet').hidden = true; document.body.classList.remove('sheet-open'); }
   document.querySelectorAll('#phoneNav [data-pn]').forEach(a => a.dataset.pn === state.view ? a.setAttribute('aria-current', 'page') : a.removeAttribute('aria-current'));
@@ -1756,6 +1797,7 @@ function render() {
   if (mon) { renderMonitor(); return; }
   if (fin) { loadCosts(); renderFinance(); return; }
   if (tec) { renderTechs(); return; }
+  if (fol) { renderFollow(); return; }
   if (trk) { renderTrack(); return; }
   if (phone) renderTrack();   // keeps the open-job count on the bottom bar current
   if (req) { renderRequest(); return; }
@@ -2359,6 +2401,59 @@ $('financeView').addEventListener('click', e => {
 });
 
 // ---------- งานของช่าง (admin): who has which job, how far it got, export to Excel ----------
+// ---------- งานที่ติดตาม (admin) ----------
+const canFollow = () => role() === 'admin';
+const FCOL = () => ({ date: findCol(['FollowDate']), note: findCol(['FollowNote']), by: findCol(['FollowBy']) });
+function followOf(r) {
+  const k = FCOL(), raw = k.date ? String(r[k.date] ?? '').trim() : '';
+  if (!raw) return null;
+  return { d: parseAny(raw), note: k.note ? String(r[k.note] ?? '').trim() : '', by: k.by ? String(r[k.by] ?? '').trim() : '' };
+}
+function followJobs() {
+  const c = columns(), today = new Date(); today.setHours(0, 0, 0, 0);
+  return state.rows.map(r => ({ r, fw: followOf(r) })).filter(x => x.fw).map(x => {
+    const st = statusOf(x.r), d = x.fw.d, days = d ? Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()) - today) / DAY) : null;
+    const grp = isDone(st) ? 'done' : days === null || days < 0 ? 'late' : days === 0 ? 'today' : days <= 7 ? 'soon' : 'later';
+    const items = actionItems(String(x.r[c.id])), last = items[items.length - 1];
+    return Object.assign(x, { id: String(x.r[c.id]), st, days, grp, last: last ? String(last.detail || '').trim() : '' });
+  });
+}
+function renderFollow() {
+  const list = followJobs(), c = columns();
+  const n = list.filter(x => x.grp === 'late' || x.grp === 'today').length;
+  $('followSub').textContent = list.length ? `ติดตามอยู่ ${list.filter(x => x.grp !== 'done').length} งาน` + (n ? ` · ต้องดูวันนี้ ${n} งาน` : '') : '';
+  if (!list.length) { $('followBody').innerHTML = '<div class="fwempty"><b>ยังไม่มีงานที่ติดตาม</b><br>เปิดงานในหน้ารายการงาน แล้วกด “☆ ติดตามงานนี้” เพื่อใส่วันที่คาดว่าจะเสร็จ</div>'; return; }
+  const G = [['late', 'เลยวันที่คาดว่าจะเสร็จ'], ['today', 'ครบกำหนดวันนี้'], ['soon', 'ภายใน 7 วัน'], ['later', 'หลังจากนั้น'], ['done', 'เสร็จแล้ว (กดเลิกติดตามได้)']];
+  const v = (r, names) => { const k = findCol(names); return k ? String(r[k] ?? '').trim() : ''; };
+  $('followBody').innerHTML = '<div class="fwlist">' + G.map(([g, t]) => {
+    const L = list.filter(x => x.grp === g).sort((a, b) => (a.fw.d || 0) - (b.fw.d || 0));
+    if (!L.length) return '';
+    return `<section class="fwgrp ${g}"><h2>${t}<span>${L.length}</span></h2>` + L.map(x => {
+      const when = x.grp === 'done' ? 'งานเสร็จแล้ว' : x.days === null ? 'วันที่อ่านไม่ได้' : x.days < 0 ? 'เลยมา ' + (-x.days) + ' วัน' : x.days === 0 ? 'วันนี้' : 'อีก ' + x.days + ' วัน';
+      return `<div class="fwcard"><div class="t"><b>${esc(String(x.r[c.title] ?? '').trim() || '—')}</b><small>${esc([x.id, v(x.r, ['MachineID', 'Machine No.']), v(x.r, ['FactoryID', 'Location']), x.st].filter(Boolean).join(' · '))}</small>${x.fw.note ? `<span class="nt">${esc(x.fw.note)}</span>` : ''}</div>
+        <div class="w">ช่าง <b>${esc(techOf(x.r) || '—')}</b><br>Action ล่าสุด: ${esc(x.last || 'ยังไม่มี')}</div>
+        <div class="d"><b>${x.fw.d ? esc(dShort(x.fw.d)) : '—'}</b><small>${esc(when)}</small></div>
+        <div class="b"><button type="button" class="btn" data-fwopen="${esc(x.id)}">เปิดงาน</button>${x.grp === 'done' ? '' : `<button type="button" class="btn" data-act="follow" data-id="${esc(x.id)}">แก้วัน</button>`}<button type="button" class="btn" data-unfollow="${esc(x.id)}">เลิกติดตาม</button></div></div>`;
+    }).join('') + '</section>';
+  }).join('') + '</div>';
+}
+// the menu badge: followed jobs that are due today or late
+function followBadge() {
+  const el = $('followBadge'); if (!el) return;
+  const n = canFollow() ? followJobs().filter(x => x.grp === 'late' || x.grp === 'today').length : 0;
+  el.textContent = n; el.hidden = !n;
+}
+$('followView').addEventListener('click', async e => {
+  const o = e.target.closest('[data-fwopen]');
+  if (o) { state.view = 'list'; state.status = ''; state.q = ''; $('search').value = ''; state.selected = state.jumpTo = o.dataset.fwopen; history.replaceState(null, '', location.pathname); syncUrl(); render(); [...document.querySelectorAll('[data-row]')].find(r => r.dataset.row === state.selected)?.scrollIntoView({ block: 'center' }); return; }
+  const a = e.target.closest('[data-act]'); if (a) { openAct(a.dataset.act, a.dataset.id); return; }
+  const u = e.target.closest('[data-unfollow]');
+  if (u) {
+    u.disabled = true;
+    try { await api({ op: 'follow', id: u.dataset.unfollow, off: true }); toast('เลิกติดตามงาน ' + u.dataset.unfollow + ' แล้ว'); await load(); }
+    catch (err) { if (!err.handled) toast(friendly(err)); u.disabled = false; }
+  }
+});
 const canTechs = () => (CONFIG.TECH_REPORT_ROLES || ['admin']).includes(role());
 const TSTAGE = { new: 'รอรับงาน / มอบหมาย', work: 'กำลังซ่อม', review: 'รอตรวจรับ', done: 'เสร็จสิ้น', '': 'ยกเลิก / อื่นๆ' };
 const TFILTERS = [['open', 'ยังไม่เสร็จ'], ['', 'ทั้งหมด'], ['new', 'รอรับงาน'], ['work', 'กำลังซ่อม'], ['late', 'เกินกำหนด'], ['review', 'รอตรวจรับ'], ['done', 'เสร็จสิ้น']];
@@ -2608,13 +2703,14 @@ function openTrackSheet(id, quiet) {
   const jid = esc(x.id), btn = (op, label, solid) => `<button type="button" class="btn${solid ? ' solid' : ''}" data-act="${op}" data-id="${jid}">${label}</button>`;
   const todo = !mine ? '' : isNew ? btn('take', 'รับงาน', true)
     : working ? btn('action', '+ เพิ่ม Action', true) + btn('submit', 'ทำเสร็จ · ส่งให้วิศวะตรวจ') : '';
-  const canEdit = isEngR() || (R === 'technician' && working);
-  const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${canEdit ? `<button type="button" data-aedit="${esc(a.id)}" data-id="${jid}">แก้ไข</button>` : ''}${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
+  const dueBtn = mine && canJobDue(x.status) ? btn('jobDue', x.due ? 'แก้กำหนดเสร็จ · ' + ymd(x.due) : 'กำหนดวันเสร็จ') : '';
+  const canEdit = canFixAction(x.status);
+  const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${canEdit ? `<button type="button" data-aedit="${esc(a.id)}" data-id="${jid}">แก้ไข</button><button type="button" class="del" data-adel="${esc(a.id)}" data-id="${jid}">ลบ</button>` : ''}${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
   $('trackSheetBody').innerHTML = `<p class="ts-id">${esc([x.id, x.machine, x.factory].filter(Boolean).join(' · '))}</p>
     <h2 id="trackSheetTitle">${esc(x.problem) || '—'}</h2>
     <div class="ts-pills">${pill}${x.late ? `<span class="tp tp-p1">เกินกำหนด${lateBy ? ' ' + lateBy + ' วัน' : ''}</span>` : ''}${x.done ? '<span class="tp tp-p3">เสร็จสิ้น</span>' : ''}</div>
     <ol class="ts-tl">${tl}</ol>
-    ${todo ? `<div class="ts-do">${todo}</div>` : ''}
+    ${todo || dueBtn ? `<div class="ts-do">${todo}${dueBtn}</div>` : ''}
     <div class="ts-acts"><small>Action${x.items.length ? ` · เสร็จ ${x.doneN}/${x.items.length}` : ''}</small>${x.items.length ? `<ol>${x.items.map(a => { const st = itemStatus(a), due = parseAny(a.due); return `<li><span class="ts-txt"><span>${esc(String(a.detail || '').trim() || '—')}</span>${a.remark && a.remark !== a.detail ? `<small>หมายเหตุ: ${esc(a.remark)}</small>` : ''}${itemBtns(a)}</span><em class="as-${st === 'Complete' ? 'done' : st === 'Overdue' ? 'late' : 'work'}">${st === 'Complete' ? 'เสร็จแล้ว' : st === 'Overdue' ? 'เกินกำหนด' : 'กำลังทำ'}${st !== 'Complete' && due ? ' · ' + ymd(due) : ''}</em></li>`; }).join('')}</ol>` : `<p>${working && mine ? 'ยังไม่มี Action · กด “+ เพิ่ม Action” เพื่อบันทึกงานที่ทำ' : 'ช่างยังไม่ได้ลง Action'}</p>`}</div>
     <div class="ts-ph"><small>รูปตอนแจ้ง</small>${photoGallery(x.id, photos, 'รูปภาพปัญหา', null, 'ไม่ได้แนบรูปตอนแจ้ง')}</div>`;
   const refs = splitRefs(photos).filter(v => !isLegacyRef(v));
@@ -2641,6 +2737,7 @@ $('trackSearch').addEventListener('input', e => { state.trackQ = e.target.value;
 $('trackSheet').addEventListener('click', e => {
   const ad = e.target.closest('[data-adone]'); if (ad) { openAct('actionDone', ad.dataset.id, ad.dataset.adone); return; }
   const aed = e.target.closest('[data-aedit]'); if (aed) { openAct('actionEdit', aed.dataset.id, aed.dataset.aedit); return; }
+  const adl = e.target.closest('[data-adel]'); if (adl) { openAct('actionDelete', adl.dataset.id, adl.dataset.adel); return; }
   const arm = e.target.closest('[data-aremark]'); if (arm) { openAct('actionRemark', arm.dataset.id, arm.dataset.aremark); return; }
   const ac = e.target.closest('[data-act]'); if (ac) { openAct(ac.dataset.act, ac.dataset.id); return; }
 });
@@ -2833,6 +2930,7 @@ function renderRequest() {
   // the factory is not filled in for anyone: each request picks its own location
   $('rqForm').hidden = !!state.rqSent;
   $('rqDone').hidden = !state.rqSent;
+  { const t = new Date(); $('rqDue').min = t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); }   // not before today
   if (!state.machines) loadMachines();
   fillLists();
 }
@@ -2843,10 +2941,11 @@ function rqValues() {
     location: $('rqLoc').value.trim(), machineType: $('rqType').value.trim(), machineNo: $('rqNo').value.trim(),
     system: hit ? hit.system : '', problem: $('rqProblem').value.trim(),
     impact: (document.querySelector('input[name="impact"]:checked') || {}).value || '',
+    due: $('rqDue').value,
   };
 }
 
-const RQ_LABELS = { location: 'สถานที่', machineNo: 'เลขเครื่อง', machineType: 'ประเภทเครื่อง', system: 'ระบบ', problem: 'อาการที่พบ', impact: 'ผลกระทบ' };
+const RQ_LABELS = { location: 'สถานที่', machineNo: 'เลขเครื่อง', machineType: 'ประเภทเครื่อง', system: 'ระบบ', problem: 'อาการที่พบ', impact: 'ผลกระทบ', due: 'กำหนดเสร็จ' };
 
 // photos: resized in the browser (long side 1280px, JPEG) so a request stays small
 function shrink(file) {
@@ -2891,6 +2990,10 @@ async function submitRequest(ev) {
     if (bad && !first) first = $(id);
   });
   if (!checkType() && !first) first = $('rqType');
+  const dueBad = $('rqDue').value && $('rqDue').value < $('rqDue').min;
+  $('rqDue').setAttribute('aria-invalid', !!dueBad);
+  $('rqDueErr').textContent = dueBad ? 'กำหนดเสร็จต้องไม่ก่อนวันนี้' : '';
+  if (dueBad && !first) first = $('rqDue');
   if (first) { first.focus(); return; }
   const v = rqValues();
   const btn = $('rqSubmit');
@@ -2900,7 +3003,7 @@ async function submitRequest(ev) {
   btn.querySelector('span:last-child').textContent = state.rqPhotos.length ? 'กำลังส่งและอัปโหลดรูป…' : 'กำลังส่ง…';
   $('rqSendErr').textContent = '';
   try {
-    const res = await sendRequest({ op: 'request', location: v.location, machineType: v.machineType, machineNo: v.machineNo, problem: v.problem, impact: v.impact, photos: state.rqPhotos });
+    const res = await sendRequest({ op: 'request', location: v.location, machineType: v.machineType, machineNo: v.machineNo, problem: v.problem, impact: v.impact, due: v.due, photos: state.rqPhotos });
     cbClose();   // a dropdown left open would stop the "sent" screen from drawing
     state.rqSent = { v, jobId: res.jobId, photos: res.photos || 0, started: !!res.started };
     state.rqPhotos = [];
@@ -2925,7 +3028,7 @@ function showSent() {
     + (started ? 'งานนี้อยู่ในหน้าที่ของคุณ สถานะ “On Process” เริ่มงานได้เลย' : 'สถานะ “รอมอบหมายช่าง” ทีมซ่อมบำรุงจะติดตามงานให้')
     + (photos ? ` · แนบรูป ${photos} รูป` : '')
     + (elsewhere ? ` · งานนี้แจ้งที่ ${v.location} จึงไม่แสดงในรายการของ ${own}` : '');
-  $('rqDoneList').innerHTML = Object.keys(RQ_LABELS).filter(k => v[k]).map(k => `<dt>${RQ_LABELS[k]}</dt><dd>${esc(k === 'impact' ? CONFIG.IMPACT_LABELS[v[k]] || v[k] : v[k])}</dd>`).join('');
+  $('rqDoneList').innerHTML = Object.keys(RQ_LABELS).filter(k => v[k]).map(k => `<dt>${RQ_LABELS[k]}</dt><dd>${esc(k === 'impact' ? CONFIG.IMPACT_LABELS[v[k]] || v[k] : k === 'due' ? dShort(dateOf(v[k])) : v[k])}</dd>`).join('');
   $('rqView').hidden = !!elsewhere;
   $('rqForm').reset();
   render();
@@ -2933,6 +3036,12 @@ function showSent() {
 }
 
 $('rqForm').addEventListener('submit', submitRequest);
+$('rqDueChips').addEventListener('click', e => {
+  const b = e.target.closest('[data-qd]'); if (!b) return;
+  const d = new Date(); d.setDate(d.getDate() + Number(b.dataset.qd || 0));
+  $('rqDue').value = b.dataset.qd === '' ? '' : isoDay(d);
+  $('rqDue').setAttribute('aria-invalid', false); $('rqDueErr').textContent = '';
+});
 $('rqChips').innerHTML = (CONFIG.PROBLEM_CHIPS || []).map(t => `<button type="button" class="qchip" data-qp="${esc(t)}">${esc(t)}</button>`).join('');
 $('rqChips').addEventListener('click', e => {
   const b = e.target.closest('[data-qp]'); if (!b) return;
@@ -3151,7 +3260,7 @@ function moreHtml(r, c, span) {
   const openDays = repD ? (isDone(status) ? days(repD, finD || repD) : days(repD, today)) : null;
   const kpi = (label, val, cls, sub) => `<div class="jk${cls ? ' ' + cls : ''}"><span>${label}</span><b>${val}</b>${sub ? `<small>${sub}</small>` : ''}</div>`;
   const kpis = `<div class="jkpis">${kpi(isDone(status) ? 'ใช้เวลา' : 'ค้างมา', openDays == null ? '—' : fmt(openDays) + ' วัน', isDone(status) ? 'ok' : late ? 'bad' : openDays > 30 ? 'warn' : '', repD ? 'แจ้ง ' + shortDate(repD) : '')}
-    ${kpi('Due date', dueD ? shortDate(dueD) : 'ยังไม่กำหนด', late && dueD ? 'bad' : '', late && dueD ? 'เลยกำหนด ' + fmt(days(dueD, today)) + ' วัน' : dueD && !isDone(status) ? 'อีก ' + fmt(days(today, dueD)) + ' วัน' : '')}
+    ${kpi('Due date', dueD ? shortDate(dueD) : 'ยังไม่กำหนด', late && dueD ? 'bad' : '', (late && dueD ? 'เลยกำหนด ' + fmt(days(dueD, today)) + ' วัน' : dueD && !isDone(status) ? 'อีก ' + fmt(days(today, dueD)) + ' วัน' : '') + (canJobDue(status) ? ` <button type="button" class="link jkedit" data-act="jobDue" data-id="${esc(id)}">${dueD ? 'แก้ไข' : 'กำหนดวัน'}</button>` : ''))}
     ${kpi('Action', items.length ? doneN + ' / ' + items.length + ' เสร็จ' : 'ยังไม่มี', items.length && doneN === items.length ? 'ok' : '', !items.length && isWork(status) ? 'ต้องมีก่อนส่งงาน' : '')}
     ${kpi('ค่าใช้จ่าย', cost ? fmt(cost) + ' ฿' : '0 ฿', '', '')}</div>`;
 
@@ -3354,6 +3463,10 @@ const isTechR = () => role() === 'technician' || role() === 'admin';
 const M = () => state.meta || {};
 const ST = () => M().status || { new: 'WaitingEngineer', work: 'On Process', review: 'WaitingReview', done: 'Complete' };
 const isWork = s => (M().workStatuses || ['On Process', 'Overdue']).some(x => norm(x) === norm(s));
+// who may change the job's due date: an engineer / admin until the job is closed, the technician until it is sent for review
+const canJobDue = s => isEngR() ? !isDone(s) : role() === 'technician' && (isWork(s) || norm(s) === norm(ST().new));
+// who may correct / delete an action: an engineer / admin, the technician while the job is being worked on
+const canFixAction = s => isEngR() ? !isDone(s) : role() === 'technician' && isWork(s);
 
 // every call is a POST with the session token (text/plain avoids the CORS preflight)
 async function api(payload) {
@@ -3448,7 +3561,7 @@ function actionTableHtml(r, id) {
     const st = itemStatus(a);
     return `<tr class="ar-${esc(String(a.type || '').toLowerCase())}"><td>${i + 1}</td><td><span class="atype t-${esc(String(a.type || '').toLowerCase())}">${esc(TYPE_LABEL(a.type))}</span></td>
       <td class="atext">${stepsHtml(a.detail)}${a.remark && a.remark !== a.detail ? `<small>หมายเหตุ: ${esc(a.remark)}</small>` : ''}${role() === 'technician' && canTick && a.id ? `<button type="button" class="link aremark" data-aremark="${esc(a.id)}" data-id="${esc(id)}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ เพิ่มหมายเหตุ'}</button>` : ''}${(a.photos || []).length ? `<small class="aphotos">${photoBtns(id, a.photos, 'รูปภาพหลังทำ Action #' + (i + 1))}</small>` : ''}</td>
-      <td>${esc(a.picOther || a.pic)}${(isEngR() || (role() === 'technician' && isWork(statusOf(r)))) && a.id ? ` <button class="link aedit" data-aedit="${esc(a.id)}" data-id="${esc(id)}" aria-label="แก้ไข Action ${i + 1}">แก้ไข</button>` : ''}</td>
+      <td>${esc(a.picOther || a.pic)}${canFixAction(statusOf(r)) && a.id ? ` <button class="link aedit" data-aedit="${esc(a.id)}" data-id="${esc(id)}" aria-label="แก้ไข Action ${i + 1}">แก้ไข</button> <button class="link aedit adel" data-adel="${esc(a.id)}" data-id="${esc(id)}" aria-label="ลบ Action ${i + 1}">ลบ</button>` : ''}</td>
       <td${st === 'Overdue' ? ' class="alate"' : ''}>${day(a.due)}</td>
       <td>${a.finish ? '<span class="adone">✓ ทำแล้ว ' + day(a.finish) + '</span>' : `<span class="anot">ยังไม่ทำ</span>${canTick && a.id ? ` <button class="link" data-adone="${esc(a.id)}" data-id="${esc(id)}">กดเมื่อเสร็จ</button>` : ''}`}</td>
       <td><span class="ast s-${st.toLowerCase().replace(/\s+/g, '')}">${esc(st)}</span></td>
@@ -3472,12 +3585,13 @@ function jobButtons(r, c) {
     if (norm(st) === norm(S.review)) out.push(b('approve', 'ยอมรับงาน', true), b('sendBack', 'ส่งกลับให้ช่างแก้'));
     out.push(`<button class="btn" data-edit="${id}">แก้ไขข้อมูลงาน</button>`);
   }
+  if (canFollow() && !isDone(st)) out.push(followOf(r) ? `<button class="btn fwon" data-act="follow" data-id="${id}">★ แก้การติดตาม · ${esc(dShort(followOf(r).d))}</button>` : b('follow', '☆ ติดตามงานนี้'));
   if (R === 'technician' && norm(st) === norm(S.new)) out.push(b('take', 'รับงาน', true));
   if ((R === 'engineer' || R === 'technician' || R === 'admin') && !isDone(st)) out.push(`<button class="btn hotbtn${isHot(r) ? ' on' : ''}" data-hot="${id}" aria-pressed="${isHot(r)}">${BOLT}${isHot(r) ? 'ยกเลิก High attention' : 'High attention'}</button>`);
   if ((R === 'technician' || R === 'admin') && isWork(st)) out.push(b('action', 'เพิ่ม Action', true), b('submit', 'ทำเสร็จ · ส่งให้วิศวะตรวจ'));
   return out.join('');
 }
-const ACT_TYPE = { actionDone: 'Action เสร็จ', actionEdit: 'แก้ไข Action', actionRemark: 'หมายเหตุ Action', attention: 'High attention', request: 'แจ้งซ่อม', auto: 'ส่งงานอัตโนมัติ', take: 'รับงาน', ack: 'วิศวะรับทราบ', accept: 'มอบหมายช่าง', action: 'Action', parts: 'รออะไหล่', submit: 'ส่งงานให้ตรวจ', approve: 'ยอมรับงาน', sendBack: 'ส่งกลับ', edit: 'แก้ไข' };
+const ACT_TYPE = { jobDue: 'กำหนดเสร็จ', actionDelete: 'ลบ Action', follow: 'ติดตามงาน', actionDone: 'Action เสร็จ', actionEdit: 'แก้ไข Action', actionRemark: 'หมายเหตุ Action', attention: 'High attention', request: 'แจ้งซ่อม', auto: 'ส่งงานอัตโนมัติ', take: 'รับงาน', ack: 'วิศวะรับทราบ', accept: 'มอบหมายช่าง', action: 'Action', parts: 'รออะไหล่', submit: 'ส่งงานให้ตรวจ', approve: 'ยอมรับงาน', sendBack: 'ส่งกลับ', edit: 'แก้ไข' };
 // every job of the same machine (MachineID, any spelling of case), newest first
 function machineJobs(machine) {
   const key = upper(machine); if (!key) return [];
@@ -3508,6 +3622,7 @@ function historyHtml(id) {
 
 // one dialog for every workflow step
 const ACTS = {
+  follow: { title: 'ติดตามงาน', ok: 'บันทึกการติดตาม', msg: 'ใส่วันที่คาดว่างานนี้จะเสร็จ งานจะขึ้นในแท็บ "งานที่ติดตาม"' },
   take: { title: 'รับงาน', ok: 'รับงาน', msg: 'ยืนยันรับงานนี้ สถานะจะเปลี่ยนเป็น On Process' },
   ack: { title: 'รับทราบงานใหม่', ok: 'รับทราบ', msg: 'ตรวจรายละเอียด ตั้ง Priority / กำหนดเสร็จได้ (ไม่บังคับ) สถานะไม่เปลี่ยน' },
   accept: { title: 'มอบหมาย / เปลี่ยนช่าง', ok: 'บันทึก', msg: 'เลือกช่างที่จะรับผิดชอบงานนี้' },
@@ -3516,6 +3631,8 @@ const ACTS = {
   approve: { title: 'ยอมรับงาน', ok: 'ยอมรับ · ปิดงาน', msg: 'ตรวจงานแล้ว ยอมรับและปิดงานนี้ (Complete)' },
   sendBack: { title: 'ส่งกลับให้ช่างแก้', ok: 'ส่งกลับ', msg: 'งานยังไม่เรียบร้อย ส่งกลับให้ช่างทำต่อ' },
   actionRemark: { title: 'หมายเหตุ Action', ok: 'บันทึกหมายเหตุ', msg: 'เพิ่มหรือแก้หมายเหตุของ Action นี้ (ขึ้นในประวัติงาน)' },
+  actionDelete: { title: 'ลบ Action', ok: 'ลบ Action', msg: 'ลบ Action นี้ออกจากงาน (กู้คืนไม่ได้ · ขึ้นในประวัติงานว่าใครลบ)' },
+  jobDue: { title: 'กำหนดเสร็จของงาน', ok: 'บันทึกกำหนดเสร็จ', msg: 'วันที่ต้องการให้งานนี้เสร็จ (ขึ้นในประวัติงานว่าใครแก้)' },
   actionEdit: { title: 'แก้ไข Action', ok: 'บันทึกการแก้ไข', msg: 'แก้ไขรายละเอียด / Due date ของ Action นี้ (ขึ้นในประวัติงานว่าใครแก้)' },
   actionDone: { title: 'บันทึกว่า Action เสร็จแล้ว', ok: 'บันทึกว่าเสร็จแล้ว', msg: 'ใส่วันที่เสร็จ และแนบรูปหลังทำเสร็จ (ไม่บังคับ)' },
 };
@@ -3593,6 +3710,18 @@ function openAct(op, id, aid) {
       <label>Cost (บาท)<input name="cost" inputmode="decimal" maxlength="20" value="${esc(it.cost ?? '')}"></label>
       <label class="full">หมายเหตุ<textarea name="remark" rows="2" maxlength="2000">${esc(it.remark && it.remark !== it.detail ? it.remark : '')}</textarea></label>
       <p class="full dsub">บันทึกโดย ${esc(it.pic || it.createdBy || '—')}${it.createdAt ? ' · ' + esc(it.createdAt) : ''}</p>`;
+  } else if (op === 'actionDelete') {
+    const it = actionItems(id).find(x => x.id === aid) || {};
+    f = `<div class="full adonebox ${String(it.type || '').toUpperCase() === 'PREVENTIVE' ? 't-preventive' : 't-corrective'}"><span class="atype t-${esc(String(it.type || '').toLowerCase())}">${esc(TYPE_LABEL(it.type))}</span> <b>${esc(it.detail || '')}</b>${it.picOther || it.pic ? ` · PIC ${esc(it.picOther || it.pic)}` : ''}</div>
+      <label class="full">เหตุผล (ไม่บังคับ)<textarea name="note" rows="2" maxlength="2000" placeholder="เช่น ลงซ้ำ, ใส่ผิดงาน"></textarea></label>`;
+  } else if (op === 'jobDue') {
+    const d = parseAny(String(r[findCol(['DueDateTime', 'Due date'])] ?? '').trim());
+    f = `<label>กำหนดเสร็จ *<input type="date" name="due" required min="${plusDays(0)}" value="${d ? isoDay(d) : ''}"></label>
+      <label class="full">หมายเหตุ (ไม่บังคับ)<textarea name="note" rows="2" maxlength="2000" placeholder="เช่น รออะไหล่ถึงวันศุกร์"></textarea></label>`;
+  } else if (op === 'follow') {
+    const fw = followOf(r);
+    f = `<label>วันที่คาดว่าจะเสร็จ *<input type="date" name="date" required value="${fw && fw.d ? isoDay(fw.d) : ''}"></label>
+      <label class="full">หมายเหตุ<textarea name="note" rows="2" maxlength="2000" placeholder="เช่น รอ Vendor เข้ามาเปลี่ยนมอเตอร์">${esc(fw ? fw.note : '')}</textarea></label>`;
   } else if (op === 'submit' && !actionItems(id).length) {
     f = '<p class="full msg">ต้องมี Action อย่างน้อย 1 รายการก่อนส่งงาน — กด "เพิ่ม Action" ก่อน</p>';
   } else if (op === 'submit') {
@@ -3603,6 +3732,7 @@ function openAct(op, id, aid) {
   if (op !== 'action') $('actDlg').classList.remove('pmode');
   $('actFields').innerHTML = f;
   $('actForm').dataset.op = op; $('actForm').dataset.id = id; $('actForm').dataset.aid = aid || '';
+  $('actOk').classList.toggle('danger', op === 'actionDelete');
   $('actOk').textContent = a.ok; $('actOk').disabled = op === 'submit' && !actionItems(id).length; $('actMsg').textContent = '';
   $('actDlg').showModal();
   if (op === 'approve' || op === 'sendBack') { const refs = logOf(id).filter(a => a.type === 'submit').flatMap(a => a.photos || []).concat(actionItems(id).flatMap(a => splitRefs(a.photos))).filter(v => !isLegacyRef(v)); if (refs.length) loadPhotos(id, refs); }
@@ -3614,7 +3744,9 @@ $('actForm').addEventListener('submit', async e => {
   const p = { op, id };
   $('actFields').querySelectorAll('[name]').forEach(el => { if (el.type !== 'radio' || el.checked) p[el.name] = el.value.trim(); });
   if (op === 'actionDone') { p.actionId = $('actForm').dataset.aid; p.photos = state.actPhotos; }
-  if (op === 'actionRemark') p.actionId = $('actForm').dataset.aid;
+  if (op === 'actionRemark' || op === 'actionDelete') p.actionId = $('actForm').dataset.aid;
+  if (op === 'jobDue' && !p.due) { $('actMsg').textContent = 'กรุณาใส่กำหนดเสร็จ'; return; }
+  if (op === 'jobDue' && p.due < plusDays(0)) { $('actMsg').textContent = 'กำหนดเสร็จต้องไม่ก่อนวันนี้'; return; }
   if (op === 'submit') p.photos = state.actPhotos;
   if (op === 'actionEdit') {
     p.actionId = $('actForm').dataset.aid;
@@ -3626,6 +3758,7 @@ $('actForm').addEventListener('submit', async e => {
     p.photos = state.actPhotos;
     p.items = [...$('arows').querySelectorAll('.arow')].map(rw => Object.fromEntries([...rw.querySelectorAll('[data-k]')].filter(el => !el.disabled).map(el => [el.dataset.k, el.value.trim()]))).filter(it => it.text);
   }
+  if (op === 'follow' && !p.date) { $('actMsg').textContent = 'กรุณาใส่วันที่คาดว่าจะเสร็จ'; return; }
   if (op === 'accept' && !p.technician) { $('actMsg').textContent = 'กรุณาเลือกช่าง'; return; }
   if (op === 'action' && !p.items.length) { $('actMsg').textContent = 'กรุณาพิมพ์รายละเอียด Action อย่างน้อย 1 แถว'; return; }
   if (op === 'action' && p.items.some(it => !it.due)) { $('actMsg').textContent = 'กรุณาใส่ Due date ของทุก Action'; return; }
@@ -3638,7 +3771,7 @@ $('actForm').addEventListener('submit', async e => {
   try {
     await api(p);
     $('actDlg').close();
-    toast({ take: 'รับงาน ' + id + ' แล้ว · On Process', ack: 'รับทราบงาน ' + id + ' แล้ว', accept: 'มอบหมายงาน ' + id + ' ให้ ' + p.technician + ' แล้ว', action: 'บันทึก Action แล้ว', actionEdit: 'แก้ไข Action แล้ว', actionRemark: p.remark ? 'บันทึกหมายเหตุแล้ว' : 'ลบหมายเหตุแล้ว', actionDone: 'บันทึกว่า Action เสร็จแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), submit: 'ส่งงาน ' + id + ' ให้วิศวะตรวจแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), approve: 'ยอมรับงาน ' + id + ' แล้ว', sendBack: 'ส่งงาน ' + id + ' กลับให้ช่างแล้ว' }[op]);
+    toast({ follow: 'ติดตามงาน ' + id + ' · คาดว่าเสร็จ ' + (p.date ? dShort(dateOf(p.date)) : ''), take: 'รับงาน ' + id + ' แล้ว · On Process', ack: 'รับทราบงาน ' + id + ' แล้ว', accept: 'มอบหมายงาน ' + id + ' ให้ ' + p.technician + ' แล้ว', action: 'บันทึก Action แล้ว', actionEdit: 'แก้ไข Action แล้ว', actionDelete: 'ลบ Action แล้ว', jobDue: 'กำหนดเสร็จ ' + (p.due ? dShort(dateOf(p.due)) : ''), actionRemark: p.remark ? 'บันทึกหมายเหตุแล้ว' : 'ลบหมายเหตุแล้ว', actionDone: 'บันทึกว่า Action เสร็จแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), submit: 'ส่งงาน ' + id + ' ให้วิศวะตรวจแล้ว' + (p.photos && p.photos.length ? ' พร้อมรูป ' + p.photos.length + ' รูป' : ''), approve: 'ยอมรับงาน ' + id + ' แล้ว', sendBack: 'ส่งงาน ' + id + ' กลับให้ช่างแล้ว' }[op]);
     state.selected = state.jumpTo = id;
     state.costsAt = 0;
     await load();
@@ -4161,6 +4294,7 @@ async function demoApi(p) {
     r.ReportedByEmail = key;
     if (p.impact === 'stop') r.Rank = CONFIG.RANKS[0]; else if (p.impact === 'run') r.Rank = CONFIG.RANKS[1]; else if (p.impact === 'none') r.Rank = CONFIG.RANKS[2];
     if (prio(r.Rank).p === 'P1') r.HighAttention = '1';   // P1 → ⚡ automatically (Code.gs AUTO_ATTENTION_P1)
+    if (p.due) { const [y, m, d] = p.due.split('-'); r.DueDateTime = `${+d}/${+m}/${y} 00:00:00`; }
     log(res.jobId, 'request', p.problem.slice(0, 200), res.photos ? p.photos.map((_, i) => 'web/' + res.jobId + '_' + (i + 1) + '.jpg') : []);
     const vals = [r.SystemID, r.MachineTypeID].map(v => String(v || '').toUpperCase());
     const hit = t => (t.scope || []).some(e => e !== '*' && vals.some(v => v === e || new RegExp('(^|[^A-Z0-9])' + e.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '([^A-Z0-9]|$)').test(v)));
@@ -4187,7 +4321,15 @@ async function demoApi(p) {
   const S = ST(), st = r.Status, note = String(p.note || '').trim(), rank0 = r.Rank;
   let err = '';
   const due = () => { if (p.due) { const [y, m, d] = p.due.split('-'); r.DueDateTime = `${+d}/${+m}/${y} 00:00:00`; } if (p.rank) r.Rank = p.rank; };
-  if (p.op === 'attention') {
+  if (p.op === 'follow') {
+    err = u.role !== 'admin' && 'บัญชีนี้ไม่มีสิทธิ์ทำรายการนี้';
+    if (!err) {
+      ['FollowDate', 'FollowNote', 'FollowBy'].forEach(h => { if (!demo.headers.includes(h)) demo.headers.push(h); });
+      if (p.off) { r.FollowDate = r.FollowNote = r.FollowBy = ''; log(r.JobID, 'follow', 'เลิกติดตามงาน'); }
+      else if (!p.date) err = 'กรุณาใส่วันที่คาดว่าจะเสร็จ';
+      else { const [y, m, d] = p.date.split('-'); r.FollowDate = `${+d}/${+m}/${y}`; r.FollowNote = note; r.FollowBy = u.name; log(r.JobID, 'follow', 'ติดตามงาน · คาดว่าเสร็จ ' + p.date + (note ? ' · ' + note : '')); }
+    }
+  } else if (p.op === 'attention') {
     err = need(['engineer', 'technician']);
     if (!err) { r.HighAttention = p.on ? '1' : ''; log(r.JobID, 'attention', p.on ? 'ตั้งเป็น High attention' : 'ยกเลิก High attention'); }
   } else if (p.op === 'take') {
@@ -4230,6 +4372,23 @@ async function demoApi(p) {
     const a = (demo.items[r.JobID] || []).find(x => x.id === p.actionId), rm = String(p.remark || '').trim();
     err = need(['technician', 'engineer']) || (isDone(st) && 'งานนี้ปิดแล้ว') || (!a && 'ไม่พบ Action ' + p.actionId) || (rm === String(a.remark || '').trim() && 'หมายเหตุไม่ได้เปลี่ยน');
     if (!err) { a.remark = rm; log(r.JobID, 'actionRemark', rm ? 'หมายเหตุ Action ' + a.id + ' · ' + rm : 'ลบหมายเหตุ Action ' + a.id); }
+  } else if (p.op === 'actionDelete') {
+    const list = demo.items[r.JobID] || [], a = list.find(x => x.id === p.actionId);
+    err = need(['engineer', 'technician']) || (u.role === 'technician' ? !isWork(st) && 'ช่างลบ Action ได้เฉพาะงานที่กำลังซ่อม (ยังไม่ส่งให้วิศวะตรวจ)' : isDone(st) && 'งานนี้ปิดแล้ว') || (!a && 'ไม่พบ Action ' + p.actionId);
+    if (!err) {
+      list.splice(list.indexOf(a), 1);
+      r.PrimaryAction = r.Progress = list.length ? list[list.length - 1].detail : '';
+      log(r.JobID, 'actionDelete', (u.role === 'technician' ? 'ช่างลบ Action ' : u.role === 'admin' ? 'แอดมินลบ Action ' : 'วิศวะลบ Action ') + a.id + ' · ' + a.detail + (note ? ' · เหตุผล: ' + note : ''));
+    }
+  } else if (p.op === 'jobDue') {
+    err = need(['engineer', 'technician']) || (u.role === 'technician' ? !(isWork(st) || st === S.new) && 'ช่างแก้กำหนดเสร็จได้เฉพาะงานที่ยังไม่ส่งให้วิศวะตรวจ' : isDone(st) && 'งานนี้ปิดแล้ว')
+      || (!/^\d{4}-\d{2}-\d{2}$/.test(p.due || '') && 'กรุณาใส่กำหนดเสร็จ') || (p.due < isoDay(new Date()) && 'กำหนดเสร็จต้องไม่ก่อนวันนี้');
+    if (!err) {
+      const before = String(r.DueDateTime || '').split(' ')[0];
+      const [y, m, d] = p.due.split('-'); r.DueDateTime = `${+d}/${+m}/${y} 00:00:00`;
+      if (st === 'Overdue') r.Status = S.work;
+      log(r.JobID, 'jobDue', 'แก้กำหนดเสร็จ ' + (before ? before + ' → ' : '') + p.due + (st === 'Overdue' ? ' · กลับเป็น ' + S.work : '') + (note ? ' · ' + note : ''));
+    }
   } else if (p.op === 'actionEdit') {
     const list = demo.items[r.JobID] || [], a = list.find(x => x.id === p.actionId);
     err = need(['engineer', 'technician']) || (u.role === 'technician' && !isWork(st) && 'ช่างแก้ไข Action ได้เฉพาะงานที่กำลังซ่อม (ยังไม่ส่งให้วิศวะตรวจ)') || (!a && 'ไม่พบ Action ' + p.actionId) || (!p.text && 'กรุณาพิมพ์รายละเอียด Action') || (!p.due && 'กรุณาใส่ Due date');
@@ -4329,6 +4488,8 @@ $('list').addEventListener('click', e => {
   if (arm) { openAct('actionRemark', arm.dataset.id, arm.dataset.aremark); return; }
   const ae = e.target.closest('[data-aedit]');
   if (ae) { openAct('actionEdit', ae.dataset.id, ae.dataset.aedit); return; }
+  const adl = e.target.closest('[data-adel]');
+  if (adl) { openAct('actionDelete', adl.dataset.id, adl.dataset.adel); return; }
   const hb = e.target.closest('[data-hot]');
   if (hb) {
     const on = hb.getAttribute('aria-pressed') !== 'true';
