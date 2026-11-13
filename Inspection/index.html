@@ -1518,7 +1518,7 @@
     say('', 'กำลังส่งผลเข้าแผน PM…');
     try {
       const res = await fetch(PMLINK.api, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ op: 'pmInspect', token, id: rec.pm, date: rec.h.date, form: rec.form, period: rec.h.period, machine: rec.h.machine, inspector: rec.h.inspector, comment: rec.h.comment, rows: recRows(rec) }) });
+        body: JSON.stringify({ op: 'pmInspect', token, id: rec.pm, date: rec.h.date, form: rec.form, period: rec.h.period, machine: rec.h.machine, inspector: rec.h.inspector, comment: rec.h.comment, rows: recRows(rec).concat(rrSendRows(rec)) }) });
       const data = await res.json();
       if (data.error) throw new Error(data.error);
       markSent(rec.id);
@@ -1881,6 +1881,16 @@
       out.push({ no: id, topic: task ? task.label : '', field: 'สถานะ', value: ST[s] || s, result: s === 'notdone' ? 'ไม่เสร็จ' : '', note: r.tn[id] || '' });
     });
     return out;
+  }
+  // section 3 (Review-Revise, advice) entries for the PM plan: field 'Review-Revise' · the verdict is worded ผิดปกติ / เฝ้าระวัง / ปกติ
+  // (not นอกเกณฑ์) so the plan does not count it as abnormal, as this page does not count it in the result
+  function rrSendRows(r) {
+    const rows = ((RR[r.form] || {}).rows || []), WORD = { ng: 'ผิดปกติ', watch: 'เฝ้าระวัง', ok: 'ปกติ' };
+    return Object.entries(r.rr || {}).map(([id, v]) => {
+      const row = rows[+id.split('.')[2] - 1], st = v.st || v.r || '';
+      const typed = row && row.cells ? row.cells.map(c => v[c.k] ? `${c.l} ${v[c.k]}${c.u ? ' ' + c.u : ''}` : '').filter(Boolean).join(' · ') : '';
+      return { no: id, topic: row ? row.l : '', field: 'Review-Revise', value: [typed, v.val].filter(Boolean).join(' → ') || WORD[st] || '', result: WORD[st] || '', note: v.n || '' };
+    });
   }
   function exportCsv() {
     const cell = (v) => `"${String(v ?? '').replace(/"/g, '""')}"`;

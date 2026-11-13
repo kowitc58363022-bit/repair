@@ -1193,6 +1193,9 @@ body.pm-only .nav a:not(.pmnav),body.pm-only #phoneNav a:not(.pmnav),body.pm-onl
 .pmme-c .btn{display:flex;width:100%;min-height:46px;justify-content:center;align-items:center;margin-top:10px;text-decoration:none}
 .pmme-r{display:flex;justify-content:space-between;gap:8px;width:100%;border:1px solid var(--line);border-radius:12px;background:#fff;padding:10px 14px;margin-bottom:8px;font:inherit;font-size:14px;color:var(--muted);text-align:left;cursor:pointer}.pmme-r b{color:var(--ink);font-weight:600}
 .pmme-all{display:block;width:100%;margin:18px 0 6px;min-height:44px;border:1px dashed var(--line);border-radius:12px;background:none;font:inherit;color:var(--navy);font-weight:600;cursor:pointer}
+/* phones: a job shows its details and ทำ Inspection only (no files, scheduling, manual submit when there is a form, plan edit) */
+@media (max-width:700px){#pmDlgBody .pm-files,#pmDlgBody .pm-sched,#pmDlgBody .pm-edit,#pmDlgBody .pm-done.pm-hasform{display:none}}
+.pminsp .btn{text-decoration:none}
 .pminsp{display:flex;flex-wrap:wrap;align-items:center;gap:10px}.pminsp p{margin:0;color:var(--muted);font-size:13.5px;flex:1 1 220px}
 @media (max-width:700px){
   .pminsp .btn{width:100%;min-height:48px;justify-content:center}
@@ -3965,7 +3968,7 @@ function openPM(id) {
     ['PIC', x.pic], ['ผู้ทำ', /vendor/i.test(o.Owner) ? 'Vendor' : o.Owner ? 'ทีมช่าง (' + o.Owner + ')' : ''], ['เครื่องจักร', x.stop ? 'ต้องหยุดเครื่อง' : 'เดินเครื่องได้'],
     ['Machine type', o.MachineType], ['System', o.SystemID], ['Team', o.TeamCode], ['Remark', o.Remark], ['อนุมัติโดย', o.ApprovedBy ? pmPicName(o.ApprovedBy) + (o.ApprovedAt ? ' · ' + dWhen(o.ApprovedAt, true) : '') : '']].filter(([, v]) => v);
   let f = `<dl class="pmdl">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
-    + (files.length ? `<div class="pmtbl-w"><h3>Upload Inspection</h3><div class="pmfiles">${files.join('')}</div></div>` : '')
+    + (files.length ? `<div class="pmtbl-w pm-files"><h3>Upload Inspection</h3><div class="pmfiles">${files.join('')}</div></div>` : '')
     // the Inspection / Operation tables only once the job was done and an inspection file is attached
     + ((x.st === 'done' || x.st === 'review') && (refs('InspectionFile').length || o.InspectionID) ? (DEMO ? pmChecklistHtml(x) : '<div class="pmtbl-w" id="pmCk"><h3>Inspection</h3><p class="pmnone">กำลังโหลดค่าวัด…</p></div>') : '');
   if (work) {
@@ -3973,8 +3976,8 @@ function openPM(id) {
     const fm = pmForm(x);
     if (fm) f += `<div class="pmsec"><h3>ทำ Inspection</h3><div class="full pminsp"><a class="btn solid" href="${esc(pmInspUrl(x, fm))}" target="_blank" rel="noopener">${pmDraft(x, fm) ? 'ทำต่อ (มีร่าง ' + esc(pmDraftTime(pmDraft(x, fm))) + ')' : 'เปิดฟอร์ม'} ${esc(fm.form.id)} · รอบ ${esc(fm.period)}</a>
       <p>กรอกค่าวัดที่เครื่องบนมือถือ กดบันทึกแล้วผลส่งเข้าแผนนี้ งานเป็น "รออนุมัติ" เอง ไม่ต้องกดส่งด้านล่าง</p></div></div>`;
-    f += `<div class="pmsec"><h3>นัดวันทำ</h3><label>วันที่<input type="date" name="pdate" value="${x.plan ? isoDay(x.plan) : ''}"></label><div class="btns" style="grid-column:auto;align-self:end"><button type="button" class="btn" data-pmdo="schedule">บันทึกวันนัด</button></div></div>
-      <div class="pmsec"><h3>บันทึกว่าทำ PM เสร็จ</h3>
+    f += `<div class="pmsec pm-sched"><h3>นัดวันทำ</h3><label>วันที่<input type="date" name="pdate" value="${x.plan ? isoDay(x.plan) : ''}"></label><div class="btns" style="grid-column:auto;align-self:end"><button type="button" class="btn" data-pmdo="schedule">บันทึกวันนัด</button></div></div>
+      <div class="pmsec pm-done${fm ? ' pm-hasform' : ''}"><h3>บันทึกว่าทำ PM เสร็จ</h3>
         <label>วันที่ทำ *<input type="date" name="adate" value="${isoDay(new Date())}" max="${isoDay(new Date())}"></label>
         <label class="pmchk"><input type="checkbox" name="abnormal"> พบสิ่งผิดปกติ</label>
         <div class="full"><label class="abtn"><svg class="ico-inline"><use href="#i-cam"/></svg>แนบ Inspection (PDF หรือรูป ไม่บังคับ สูงสุด ${CONFIG.MAX_PHOTOS} ไฟล์)<input type="file" id="pmFiles" accept="application/pdf,image/jpeg,image/png,image/webp" multiple hidden></label><div class="pmflist" id="pmFileList"></div></div>
@@ -3985,7 +3988,7 @@ function openPM(id) {
       <div class="btns"><button type="button" class="btn solid" data-pmdo="approve">อนุมัติ</button><button type="button" class="btn" data-pmdo="sendBack">ส่งกลับให้ช่างแก้</button></div></div>`;
   if (eng && x.st !== 'done') {
     const techs = uniq(((pmv.data[pmv.year] || {}).technicians || []).concat(x.pic ? [] : []));
-    f += `<div class="pmsec"><details><summary>แก้ไขแผน (PIC · เดือน · ปี)</summary><div class="pmsec" style="border:0;padding-top:6px">
+    f += `<div class="pmsec pm-edit"><details><summary>แก้ไขแผน (PIC · เดือน · ปี)</summary><div class="pmsec" style="border:0;padding-top:6px">
         <label>PIC<select name="ePIC"><option value="">— ไม่เปลี่ยน (${esc(x.pic) || 'ว่าง'}) —</option>${techs.map(t => `<option>${esc(t)}</option>`).join('')}</select></label>
         <label>เดือน<select name="ePlanMonth">${PM_MONTHS.map((mm, i) => `<option value="${mm}"${i + 1 === x.m ? ' selected' : ''}>${MON3[i]}</option>`).join('')}</select></label>
         <label>ปี<input name="ePlanYear" inputmode="numeric" maxlength="4" value="${esc(o.PlanYear)}"></label>
@@ -4030,8 +4033,8 @@ async function pmLoadChecklist(x) {
 }
 // the readings sent from the Inspection page (newest submission): values, then the tasks (field "สถานะ")
 function pmWebHtml(w) {
-  const cls = s => /นอกเกณฑ์|ไม่เสร็จ/.test(s) ? 'pmbad' : /เฝ้าระวัง|ไม่ได้ทำ/.test(s) ? 'pmwarn' : s ? 'pmok' : '';
-  const vals = w.rows.filter(i => i.field !== 'สถานะ'), tasks = w.rows.filter(i => i.field === 'สถานะ');
+  const cls = s => /นอกเกณฑ์|ไม่เสร็จ|ผิดปกติ/.test(s) ? 'pmbad' : /เฝ้าระวัง|ไม่ได้ทำ/.test(s) ? 'pmwarn' : s ? 'pmok' : '';
+  const vals = w.rows.filter(i => i.field !== 'สถานะ' && i.field !== 'Review-Revise'), tasks = w.rows.filter(i => i.field === 'สถานะ'), rr = w.rows.filter(i => i.field === 'Review-Revise');
   let prev = '';
   const vrows = vals.map(i => { const head = i.no + '|' + i.topic !== prev; prev = i.no + '|' + i.topic; return `<tr><td>${head ? esc(i.no + '. ' + i.topic) : ''}</td><td>${esc(i.field)}</td><td><span class="pmv">${esc(i.value)}</span></td><td>${i.result ? `<span class="${cls(i.result)}">${esc(i.result)}</span>` : ''}</td></tr>`; }).join('');
   const trows = tasks.map(i => `<tr><td>${esc(i.no + '. ' + i.topic)}</td><td><span class="${cls(i.value)}">${esc(i.value)}</span></td><td>${esc(i.note)}</td></tr>`).join('');
@@ -4039,7 +4042,8 @@ function pmWebHtml(w) {
   return `<div class="pmtbl-w"><h3>Inspection <em>${vals.length}</em> <small>${esc([w.form, w.period ? 'รอบ ' + w.period : '', w.date ? dShort(parseAny(w.date)) || w.date : '', w.inspector ? 'ผู้ตรวจ ' + w.inspector : ''].filter(Boolean).join(' · '))}</small></h3>
       <p class="${bad ? 'pmbad' : 'pmok'}">${bad ? 'นอกเกณฑ์ / ไม่เสร็จ ' + bad + ' รายการ' : 'ทุกค่าอยู่ในเกณฑ์'}${watch ? ` <span class="pmwarn">· เฝ้าระวัง ${watch}</span>` : ''}</p>${w.comment ? `<p>Comment: ${esc(w.comment)}</p>` : ''}
       ${vals.length ? `<div class="pmtbl"><table class="pmweb"><thead><tr><th>หัวข้อการตรวจ</th><th>ช่อง</th><th>ค่าที่วัด</th><th>ผล</th></tr></thead><tbody>${vrows}</tbody></table></div>` : ''}</div>
-    ${tasks.length ? `<div class="pmtbl-w"><h3>Operation <em>${tasks.length}</em></h3><div class="pmtbl"><table class="pmweb ops"><thead><tr><th>Operation Item</th><th>Result</th><th>หมายเหตุ</th></tr></thead><tbody>${trows}</tbody></table></div></div>` : ''}`;
+    ${tasks.length ? `<div class="pmtbl-w"><h3>Operation <em>${tasks.length}</em></h3><div class="pmtbl"><table class="pmweb ops"><thead><tr><th>Operation Item</th><th>Result</th><th>หมายเหตุ</th></tr></thead><tbody>${trows}</tbody></table></div></div>` : ''}
+    ${rr.length ? `<div class="pmtbl-w"><h3>3 · Review-Revise <em>${rr.length}</em> <small>แนะนำ · ไม่นับในผลตรวจ</small></h3><div class="pmtbl"><table class="pmweb ops"><thead><tr><th>หัวข้อ</th><th>ค่า / ผล</th><th>หมายเหตุ</th></tr></thead><tbody>${rr.map(i => `<tr><td>${esc(i.no + '. ' + i.topic)}</td><td>${esc(i.value)}${i.result && i.result !== i.value ? ` <span class="${cls(i.result)}">${esc(i.result)}</span>` : ''}</td><td>${esc(i.note)}</td></tr>`).join('')}</tbody></table></div></div>` : ''}`;
 }
 // the Inspection page (same site) sent results: reload the plan, and the open job if it is that one
 phoneMQ.addEventListener('change', () => { if (state.view === 'pm') renderPM(); });
