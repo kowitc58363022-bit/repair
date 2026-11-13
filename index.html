@@ -1143,6 +1143,7 @@ body.sheet-open{overflow:hidden}
 .ts-id{font-size:12.5px;color:var(--muted);margin:6px 48px 4px 0}
 #trackSheetTitle{font-family:var(--head-font);font-size:19px;color:var(--ink);margin:0 0 8px;padding-right:40px}
 .ts-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tp-due{background:#E8EEFB;color:var(--navy)}
 .ts-pills .tp{font-weight:600;padding:3px 10px}
 .ts-tl{list-style:none;margin:0 0 14px;padding:0}
 .ts-tl li{display:flex;gap:12px;position:relative;padding:0 0 14px}
@@ -2657,7 +2658,7 @@ function trackDots(x) {
 function trackCard(x) {
   const s = trackStep(x), today = new Date(); today.setHours(0, 0, 0, 0);
   const lateBy = x.late && x.due ? Math.max(1, Math.round((today - x.due) / DAY)) : 0;
-  const right = x.done ? (x.days !== null ? 'ใช้เวลา ' + x.days + ' วัน' : '') : lateBy ? 'เกินกำหนด ' + lateBy + ' วัน' : x.late ? 'เกินกำหนด' : x.days === 0 ? 'แจ้งวันนี้' : x.days !== null ? 'แจ้งมา ' + x.days + ' วัน' : '';
+  const right = x.done ? (x.days !== null ? 'ใช้เวลา ' + x.days + ' วัน' : '') : lateBy ? 'เกินกำหนด ' + lateBy + ' วัน' : x.late ? 'เกินกำหนด' : x.due ? 'กำหนดเสร็จ ' + ymd(x.due) : x.days === 0 ? 'แจ้งวันนี้' : x.days !== null ? 'แจ้งมา ' + x.days + ' วัน' : '';
   const who = s === 0 ? 'รอมอบหมายช่าง' : trackLabel(x) + (x.tech ? ' · ' + x.tech : '');
   return `<button type="button" class="tcard${x.late ? ' late' : ''}${x.done ? ' done' : ''}" data-track="${esc(x.id)}">
     <span class="tc1"><span>${esc([x.id, x.machine, x.factory].filter(Boolean).join(' · '))}</span>${x.priority ? `<b class="tp tp-${x.priority.toLowerCase()}">${x.priority}</b>` : ''}</span>
@@ -2709,7 +2710,7 @@ function openTrackSheet(id, quiet) {
   const itemBtns = a => !canTick || !a.id ? '' : `<span class="ts-ab">${canEdit ? `<button type="button" data-aedit="${esc(a.id)}" data-id="${jid}">แก้ไข</button><button type="button" class="del" data-adel="${esc(a.id)}" data-id="${jid}">ลบ</button>` : ''}${a.finish ? '' : `<button type="button" class="ok" data-adone="${esc(a.id)}" data-id="${jid}">✓ เสร็จแล้ว</button>`}<button type="button" data-aremark="${esc(a.id)}" data-id="${jid}">${a.remark && a.remark !== a.detail ? 'แก้หมายเหตุ' : '+ หมายเหตุ'}</button></span>`;
   $('trackSheetBody').innerHTML = `<p class="ts-id">${esc([x.id, x.machine, x.factory].filter(Boolean).join(' · '))}</p>
     <h2 id="trackSheetTitle">${esc(x.problem) || '—'}</h2>
-    <div class="ts-pills">${pill}${x.late ? `<span class="tp tp-p1">เกินกำหนด${lateBy ? ' ' + lateBy + ' วัน' : ''}</span>` : ''}${x.done ? '<span class="tp tp-p3">เสร็จสิ้น</span>' : ''}</div>
+    <div class="ts-pills">${pill}${x.late ? `<span class="tp tp-p1">เกินกำหนด${lateBy ? ' ' + lateBy + ' วัน' : ''}</span>` : ''}${x.due && !x.done && !x.late ? `<span class="tp tp-due">กำหนดเสร็จ ${esc(ymd(x.due))}</span>` : ''}${x.done ? '<span class="tp tp-p3">เสร็จสิ้น</span>' : ''}</div>
     <ol class="ts-tl">${tl}</ol>
     ${todo || dueBtn ? `<div class="ts-do">${todo}${dueBtn}</div>` : ''}
     <div class="ts-acts"><small>Action${x.items.length ? ` · เสร็จ ${x.doneN}/${x.items.length}` : ''}</small>${x.items.length ? `<ol>${x.items.map(a => { const st = itemStatus(a), due = parseAny(a.due); return `<li><span class="ts-txt"><span>${esc(String(a.detail || '').trim() || '—')}</span>${a.remark && a.remark !== a.detail ? `<small>หมายเหตุ: ${esc(a.remark)}</small>` : ''}${itemBtns(a)}</span><em class="as-${st === 'Complete' ? 'done' : st === 'Overdue' ? 'late' : 'work'}">${st === 'Complete' ? 'เสร็จแล้ว' : st === 'Overdue' ? 'เกินกำหนด' : 'กำลังทำ'}${st !== 'Complete' && due ? ' · ' + ymd(due) : ''}</em></li>`; }).join('')}</ol>` : `<p>${working && mine ? 'ยังไม่มี Action · กด “+ เพิ่ม Action” เพื่อบันทึกงานที่ทำ' : 'ช่างยังไม่ได้ลง Action'}</p>`}</div>
