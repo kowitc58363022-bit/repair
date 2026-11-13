@@ -3963,12 +3963,13 @@ function openPM(id) {
   const work = tech && x.st !== 'done' && x.st !== 'review';
   const refs = k => String(o[k] || '').split(/\n+/).map(s => s.trim()).filter(Boolean);
   const fileBtn = (ref, label) => `<button type="button" data-pmfile="${esc(ref)}" title="${esc(ref)}"><svg class="ico-inline" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>${esc(label)}</button>`;
-  const files = refs('ChecklistFile').map(r => fileBtn(r, 'Checklist')).concat(refs('InspectionFile').map((r, i, a) => fileBtn(r, 'Inspection' + (a.length > 1 ? ' ' + (i + 1) : ''))));
+  const files = refs('ChecklistFile').map(r => fileBtn(r, 'Checklist (AppSheet)')).concat(refs('InspectionFile').map((r, i, a) => fileBtn(r, 'ไฟล์แนบ AppSheet' + (a.length > 1 ? ' ' + (i + 1) : ''))));   // files attached in AppSheet (a PDF or a photo), not the sheet sent from the phone
   const info = [['Job theme', o.JobTheme], ['แผนเดือน', (MON3[x.m - 1] || o.PlanMonth) + ' ' + o.PlanYear], ['วันนัด', x.plan ? dShort(x.plan) : 'ยังไม่นัด'], ['วันที่ทำ', x.act ? dShort(x.act) : ''],
     ['PIC', x.pic], ['ผู้ทำ', /vendor/i.test(o.Owner) ? 'Vendor' : o.Owner ? 'ทีมช่าง (' + o.Owner + ')' : ''], ['เครื่องจักร', x.stop ? 'ต้องหยุดเครื่อง' : 'เดินเครื่องได้'],
     ['Machine type', o.MachineType], ['System', o.SystemID], ['Team', o.TeamCode], ['Remark', o.Remark], ['อนุมัติโดย', o.ApprovedBy ? pmPicName(o.ApprovedBy) + (o.ApprovedAt ? ' · ' + dWhen(o.ApprovedAt, true) : '') : '']].filter(([, v]) => v);
   let f = `<dl class="pmdl">${info.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
-    + (files.length ? `<div class="pmtbl-w pm-files"><h3>Upload Inspection</h3><div class="pmfiles">${files.join('')}</div></div>` : '')
+    // attached files only once the job was done (an AppSheet photo on a job not done yet is not its inspection)
+    + (files.length && (x.st === 'done' || x.st === 'review') ? `<div class="pmtbl-w pm-files"><h3>Upload Inspection</h3><div class="pmfiles">${files.join('')}</div></div>` : '')
     // the Inspection / Operation tables only once the job was done and an inspection file is attached
     + ((x.st === 'done' || x.st === 'review') && (refs('InspectionFile').length || o.InspectionID) ? (DEMO ? pmChecklistHtml(x) : '<div class="pmtbl-w" id="pmCk"><h3>Inspection</h3><p class="pmnone">กำลังโหลดค่าวัด…</p></div>') : '');
   if (work) {
@@ -4026,8 +4027,7 @@ async function pmLoadChecklist(x) {
       pmv.rec = r.web.record;
       let files = document.querySelector('#pmDlgBody .pm-files .pmfiles');
       if (!files) { document.querySelector('#pmDlgBody .pmdl').insertAdjacentHTML('afterend', '<div class="pmtbl-w pm-files"><h3>Upload Inspection</h3><div class="pmfiles"></div></div>'); files = document.querySelector('#pmDlgBody .pm-files .pmfiles'); }
-      files.insertAdjacentHTML('afterbegin', `<button type="button" data-pmview><svg class="ico-inline" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Inspection</button>`);
-      files.querySelectorAll('[data-pmfile]').forEach(b => { if (/^Inspection/.test(b.textContent.trim()) && b.lastChild) b.lastChild.textContent += ' (AppSheet)'; });
+      files.insertAdjacentHTML('afterbegin', `<button type="button" data-pmview><svg class="ico-inline" viewBox="0 0 24 24" aria-hidden="true" style="width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/></svg>Inspection (PDF ใบตรวจ)</button>`);
     }
     return;
   }
