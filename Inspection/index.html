@@ -1829,6 +1829,35 @@
     window.scrollTo(0, 0);
   }
 
+  // A result as a PDF file (opened by the PM plan in a new tab): the sheet drawn as in showPrint, photographed and put on one PDF page.
+  // The two libraries load only here, from cdnjs.
+  const loadJs = (src) => new Promise((ok, no) => { const s = document.createElement('script'); s.src = src; s.onload = ok; s.onerror = () => no(new Error('โหลดตัวสร้าง PDF ไม่ได้ ตรวจอินเทอร์เน็ต')); document.head.appendChild(s); });
+  async function showPdf(id) {
+    form = null; S = null;
+    const fromPM = id === '__view';
+    const rec = fromPM ? store.get('insp.view', null) : store.get(HIST, []).find(r => r.id === id);
+    setNav('', '', false); setFormChrome(false);
+    const say = (t) => { $('app').innerHTML = `<section class="group"><div class="card"><p class="empty">${esc(t)}</p></div></section>`; };
+    if (!rec || !canPrint(rec.form)) { say(rec ? 'ฟอร์มรายวันยังพิมพ์ลงใบเดิมไม่ได้' : 'ไม่พบใบตรวจ เปิดใหม่จากหน้าแผน PM'); return; }
+    const s = buildSheet(rec), name = `Inspection ${rec.form} ${rec.h.machine} ${rec.h.date}`;
+    document.title = name;
+    $('app').innerHTML = `<p class="empty" style="text-align:center">กำลังสร้าง PDF…</p><div id="pdfSrc" style="position:absolute;left:0;top:0;z-index:-1">${s.html}</div>`;
+    try {
+      const img = $('pdfSrc').querySelector('img.pbg');
+      if (img && !img.complete) await new Promise((ok, no) => { img.onload = ok; img.onerror = () => no(new Error('โหลดภาพใบฟอร์มไม่ได้')); });
+      await loadJs('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');
+      await loadJs('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js');
+      const canvas = await window.html2canvas($('pdfSrc').firstElementChild, { scale: 2, backgroundColor: '#FFFFFF' });
+      const [pw, ph] = s.L.page;   // points
+      const pdf = new window.jspdf.jsPDF({ unit: 'pt', format: [pw, ph], orientation: pw > ph ? 'landscape' : 'portrait' });
+      pdf.setProperties({ title: name });
+      pdf.addImage(canvas.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, pw, ph);
+      const url = URL.createObjectURL(pdf.output('blob'));
+      // the PDF fills the tab (the browser's own viewer: zoom, download, print)
+      document.body.innerHTML = `<iframe src="${url}" title="${esc(name)}" style="position:fixed;inset:0;width:100%;height:100%;border:0"></iframe>`;
+    } catch (e) { say('สร้าง PDF ไม่สำเร็จ: ' + (e.message || e)); }
+  }
+
   // ---------- History + CSV ----------
   function showHistory() {
     form = null; S = null;
@@ -1931,6 +1960,7 @@
     else if (hash.startsWith('#/e/')) { openEdit(decodeURIComponent(hash.slice(4)), freshEdit); freshEdit = false; }
     else if (hash === '#/history') showHistory();
     else if (hash.startsWith('#/print/')) showPrint(decodeURIComponent(hash.slice(8)));
+    else if (hash.startsWith('#/pdf/')) showPdf(decodeURIComponent(hash.slice(6)));
     else if (hash.startsWith('#/rec/')) showRecord(decodeURIComponent(hash.slice(6)));
     else showHome();
   }
